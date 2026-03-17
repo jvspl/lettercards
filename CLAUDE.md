@@ -17,6 +17,24 @@ Jeroen's daughter. The words are chosen because she knows them — not from a ge
 - Other cards use simple drawn illustrations or eventually real photos/clipart
 - The word list will grow over time as she learns new words
 
+## Setup
+
+```bash
+# Clone and enter the repo
+git clone https://github.com/jvspl/lettercards.git
+cd lettercards
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create personal photos directories
+mkdir -p ~/.lettercards/personal ~/.lettercards/staging
+```
+
 ## How it works
 
 1. Edit `cards.csv` to add/remove words
@@ -44,6 +62,7 @@ draw_placeholders.py   # Generates simple hand-drawn placeholder PNGs
 images/                # Generic card images (placeholders, clipart)
 fonts/                 # Drop custom .ttf files here, they're auto-registered
 requirements.txt       # Python dependencies (pillow, reportlab)
+venv/                  # Virtual environment (gitignored, create with setup)
 letterkaarten.pdf      # Generated output (gitignored)
 ```
 
