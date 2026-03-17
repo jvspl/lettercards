@@ -31,6 +31,7 @@ python generate.py                      # All cards
 python generate.py --letters a,d,o      # Specific letters only
 python generate.py --font Lato          # Override font for all cards
 python generate.py --no-placeholders    # Skip placeholder image generation
+python generate.py --personal-dir /path # Custom personal photos location
 ```
 
 ## Architecture
@@ -39,10 +40,42 @@ python generate.py --no-placeholders    # Skip placeholder image generation
 cards.csv              # Word list config (letter, word, image filename, font, personal flag)
 generate.py            # Main PDF generator (reportlab + Pillow)
 draw_placeholders.py   # Generates simple hand-drawn placeholder PNGs
-images/                # All card images (personal photos + generated placeholders)
+images/                # Generic card images (placeholders, clipart)
 fonts/                 # Drop custom .ttf files here, they're auto-registered
 letterkaarten.pdf      # Generated output (gitignored)
 ```
+
+### What goes where
+
+**In the repo (public):**
+- Code: `generate.py`, `draw_placeholders.py`
+- Config: `cards.csv`, `CLAUDE.md`
+- Fonts: `fonts/` folder
+- Generic images: `images/` (placeholders, non-personal illustrations)
+
+**Outside the repo (private):**
+- Personal photos: `~/.lettercards/personal/` (or custom location)
+- Generated PDF: `letterkaarten.pdf` (gitignored)
+
+### Personal images folder
+
+Personal photos (family members, etc.) are stored outside the repo for privacy.
+
+**Default location:** `~/.lettercards/personal/`
+
+**Override via environment variable:**
+```bash
+export LETTERCARDS_PERSONAL_DIR=/custom/path
+```
+
+**Override via CLI flag:**
+```bash
+python generate.py --personal-dir /custom/path
+```
+
+The lookup order is: CLI flag > environment variable > default path.
+
+For cards marked `personal=yes` in `cards.csv`, the generator looks for the image in the personal folder first, then falls back to `images/`.
 
 ### cards.csv format
 
@@ -95,7 +128,7 @@ Each letter has a unique accent color defined in `LETTER_COLORS` in generate.py.
 
 - Jeroen will add words and ideas over time
 - When adding a new word: add CSV row + image, regenerate PDF, verify it looks right
-- For personal photo cards: Jeroen provides the photos, they get cropped/placed in images/
+- For personal photo cards: Jeroen provides the photos, they go in `~/.lettercards/personal/`
 - For generic words: draw_placeholders.py creates simple Pillow-drawn illustrations; these can be upgraded to better images over time
 
 ## Workflow
@@ -110,7 +143,9 @@ Each letter has a unique accent color defined in `LETTER_COLORS` in generate.py.
 2. Create a feature branch: `git checkout -b issue-3-letter-i`
 3. Make changes, test with `python generate.py`
 4. Create PR referencing the issue (e.g., "Fixes #3")
-5. Merge when ready — issue auto-closes
+5. Wait for review/approval, then merge — issue auto-closes
+
+**Important:** Direct pushes to `master` are blocked. All changes must go through a PR with at least one approval.
 
 ### Communication via GitHub
 - Jeroen may comment on issues/PRs from the web

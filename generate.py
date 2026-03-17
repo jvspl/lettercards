@@ -13,6 +13,12 @@ Usage:
     python generate.py                      # Generate all cards
     python generate.py --letters a,d,o      # Only specific letters
     python generate.py --font Lato          # Override font for all
+    python generate.py --personal-dir /path # Override personal images location
+
+Personal images location (for photos marked personal=yes in CSV):
+  1. CLI flag: --personal-dir /custom/path
+  2. Environment variable: LETTERCARDS_PERSONAL_DIR=/custom/path
+  3. Default: ~/.lettercards/personal/
 """
 
 import csv
@@ -88,6 +94,17 @@ SYSTEM_FONTS = {
 
 # Default rotation of fonts so each letter gets variety
 DEFAULT_FONTS = ["DejaVuSans", "Lato", "Carlito", "LiberationSans"]
+
+
+# ── Personal Images Directory ──────────────────────────────────────
+
+def get_personal_images_dir(cli_arg=None):
+    """Get personal images directory using layered config: CLI > env > default."""
+    if cli_arg:
+        return Path(cli_arg)
+    if env_dir := os.environ.get('LETTERCARDS_PERSONAL_DIR'):
+        return Path(env_dir)
+    return Path.home() / '.lettercards' / 'personal'
 
 def register_fonts():
     """Register system fonts and any custom fonts in fonts/ folder."""
@@ -336,7 +353,27 @@ def load_cards(csv_path, letters_filter=None):
     return cards
 
 
-def generate_pdf(cards, output_path, images_dir, available_fonts, font_override=None):
+def get_image_path(card, images_dir, personal_dir):
+    """Get the image path for a card, checking personal dir first for personal photos."""
+    if not card['image']:
+        return None
+
+    # For personal photos, check personal dir first
+    if card['personal'] == 'yes':
+        personal_path = personal_dir / card['image']
+        if personal_path.exists():
+            return str(personal_path)
+        # Fall back to images/ if not found in personal dir
+
+    # Check images/ folder
+    images_path = os.path.join(images_dir, card['image'])
+    if os.path.exists(images_path):
+        return images_path
+
+    return None
+
+
+def generate_pdf(cards, output_path, images_dir, personal_dir, available_fonts, font_override=None):
     """Generate the printable PDF with all cards."""
     c = canvas.Canvas(str(output_path), pagesize=A4)
     c.setTitle("Letterkaarten")
@@ -348,7 +385,7 @@ def generate_pdf(cards, output_path, images_dir, available_fonts, font_override=
 
     for card in cards:
         font_name = pick_font(card['word'], card['font'] or font_override, available_fonts)
-        img_path = os.path.join(images_dir, card['image']) if card['image'] else None
+        img_path = get_image_path(card, images_dir, personal_dir)
 
         all_items.append(('picture', card, font_name, img_path))
 
@@ -400,11 +437,14 @@ def main():
                         help='Skip generating placeholder images')
     parser.add_argument('--csv', type=str, default='cards.csv',
                         help='Path to the CSV config file')
+    parser.add_argument('--personal-dir', type=str, default=None,
+                        help='Directory for personal photos (default: ~/.lettercards/personal/)')
     args = parser.parse_args()
 
     base_dir = Path(__file__).parent
     csv_path = base_dir / args.csv
     images_dir = base_dir / "images"
+    personal_dir = get_personal_images_dir(args.personal_dir)
     output_path = base_dir / args.output
 
     # Register fonts
@@ -431,8 +471,9 @@ def main():
         generate_placeholder_images(cards, images_dir)
 
     # Generate PDF
-    print("\nGenerating PDF...")
-    generate_pdf(cards, output_path, images_dir, available_fonts, args.font)
+    print(f"\nPersonal images dir: {personal_dir}")
+    print("Generating PDF...")
+    generate_pdf(cards, output_path, images_dir, personal_dir, available_fonts, args.font)
 
 
 if __name__ == '__main__':
