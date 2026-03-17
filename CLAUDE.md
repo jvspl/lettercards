@@ -39,9 +39,11 @@ python generate.py --personal-dir /path # Custom personal photos location
 ```
 cards.csv              # Word list config (letter, word, image filename, font, personal flag)
 generate.py            # Main PDF generator (reportlab + Pillow)
+process_photo.py       # Personal photo processor (crop, resize, save)
 draw_placeholders.py   # Generates simple hand-drawn placeholder PNGs
 images/                # Generic card images (placeholders, clipart)
 fonts/                 # Drop custom .ttf files here, they're auto-registered
+requirements.txt       # Python dependencies (pillow, reportlab)
 letterkaarten.pdf      # Generated output (gitignored)
 ```
 
@@ -123,6 +125,60 @@ Each letter has a unique accent color defined in `LETTER_COLORS` in generate.py.
 
 ### Personal photo cards needed
 - abu, oma, opa, mama, papa, Mees, Lena, Laura
+
+## Personal photo workflow
+
+For cards that need real photos (family members, etc.), there's a workflow to help select and process photos.
+
+### Directories
+- **Staging:** `~/.lettercards/staging/` — drop candidate photos here
+- **Personal:** `~/.lettercards/personal/` — processed photos go here (used by generator)
+
+### Quick workflow
+
+```bash
+# 1. See what's in staging
+python process_photo.py --list
+
+# 2. Process a photo (crops to square, resizes to 400x400)
+python process_photo.py oma                    # Uses first image in staging
+python process_photo.py oma IMG_1234.jpg       # Uses specific image
+
+# 3. Preview without saving
+python process_photo.py oma --preview
+
+# 4. Verify by generating the card
+python generate.py --letters o
+```
+
+### With Claude assistance
+
+When working with Claude (CLI, Desktop, or web), you can get help selecting the best photo:
+
+1. Drop multiple candidate photos into `~/.lettercards/staging/`
+2. Tell Claude who they're for (e.g., "photos of oma in staging")
+3. Claude reviews and recommends the best one
+4. Claude processes and saves it
+5. Generate PDF to verify
+
+### Tips
+
+- **Portrait photos work best** — faces should be in the upper portion
+- **Multiple candidates are fine** — Claude can help pick the best one
+- **Photos app limitation:** Can't drag directly from macOS Photos app. Export first (File > Export) or use Share > Save to Files.
+
+### Photos status
+
+| Person | Filename | Status |
+|--------|----------|--------|
+| abu | abu.png | Done |
+| oma | oma.png | Pending |
+| opa | opa.png | Pending |
+| mama | mama.png | Pending |
+| papa | papa.png | Pending |
+| Mees | mees.png | Pending |
+| Lena | lena.png | Pending |
+| Laura | laura.png | Pending |
 
 ## Working style
 
