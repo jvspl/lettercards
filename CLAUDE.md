@@ -94,7 +94,25 @@ Each letter has a unique accent color defined in `LETTER_COLORS` in generate.py.
 ## Working style
 
 - Jeroen will add words and ideas over time
-- Changes should be made on branches with pull requests for review
 - When adding a new word: add CSV row + image, regenerate PDF, verify it looks right
 - For personal photo cards: Jeroen provides the photos, they get cropped/placed in images/
 - For generic words: draw_placeholders.py creates simple Pillow-drawn illustrations; these can be upgraded to better images over time
+
+## Workflow
+
+### Backlog
+- **GitHub Issues** is the backlog: https://github.com/jvspl/lettercards/issues
+- Jeroen can add issues directly on GitHub or ask Claude to create them
+- Labels: `new-letter`, `personal-photo`, `enhancement`
+
+### Making changes
+1. Pick an issue from the backlog
+2. Create a feature branch: `git checkout -b issue-3-letter-i`
+3. Make changes, test with `python generate.py`
+4. Create PR referencing the issue (e.g., "Fixes #3")
+5. Merge when ready — issue auto-closes
+
+### Communication via GitHub
+- Jeroen may comment on issues/PRs from the web
+- Claude can check comments with `gh issue view #N --comments` or `gh pr view`
+- At session start, Jeroen can point Claude to new comments to review
