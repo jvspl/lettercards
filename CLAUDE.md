@@ -17,6 +17,21 @@ Jeroen's daughter. The words are chosen because she knows them — not from a ge
 - Other cards use simple drawn illustrations or eventually real photos/clipart
 - The word list will grow over time as she learns new words
 
+## Personas
+
+Consider these perspectives when making changes:
+
+| Persona | Focus | Key questions |
+|---------|-------|---------------|
+| **Lena** (learner) | Fun, engaging cards | Are images clear? Will she enjoy this? |
+| **Jeroen** (parent) | Easy workflow | Can I add words/photos quickly? |
+| **Pedagogue** | Learning effectiveness | Is the letter prominent? Age-appropriate? |
+| **Designer** | Visual quality | Do cards look good? Consistent but varied? |
+| **Engineer** | Code health | Is this maintainable? Over-engineered? |
+| **Architect** | Project direction | Are we solving the right problem? |
+
+When writing PRs or issues, consider which personas are affected.
+
 ## Setup
 
 ```bash
