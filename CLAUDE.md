@@ -19,18 +19,56 @@ Jeroen's daughter. The words are chosen because she knows them — not from a ge
 
 ## Personas
 
-Consider these perspectives when making changes:
+Consider these perspectives when planning, building, and reviewing changes.
 
-| Persona | Focus | Key questions |
-|---------|-------|---------------|
-| **Lena** (learner) | Fun, engaging cards | Are images clear? Will she enjoy this? |
-| **Jeroen** (parent) | Easy workflow | Can I add words/photos quickly? |
-| **Pedagogue** | Learning effectiveness | Is the letter prominent? Age-appropriate? |
-| **Designer** | Visual quality | Do cards look good? Consistent but varied? |
-| **Engineer** | Code health | Is this maintainable? Over-engineered? |
-| **Architect** | Project direction | Are we solving the right problem? |
+### Lena (the learner)
+Almost 2 years old. The whole point of this project.
+- **Needs**: Cards that are fun, colorful, and show things she recognizes
+- **Approves**: Bright colors, clear images of familiar things, her favorite people
+- **Rejects**: Confusing images, abstract concepts, things she doesn't know yet
+- **Ask**: "Will Lena smile when she sees this card? Will she point and say the word?"
 
-When writing PRs or issues, consider which personas are affected.
+### Jeroen (the parent/operator)
+Creates and prints the cards. Uses Claude to help build and maintain this.
+- **Needs**: Quick iteration, easy photo workflow, minimal friction
+- **Approves**: Simple commands, clear docs, things that just work
+- **Rejects**: Complex setup, manual repetitive tasks, unclear errors
+- **Ask**: "Can I add a new word in under 2 minutes? Is this obvious how to use?"
+
+### The Pedagogue
+Ensures cards actually help a toddler learn letter-sound associations.
+- **Needs**: Age-appropriate design, clear letter prominence, known words only
+- **Approves**: First letter visually distinct, lowercase primary, words she speaks
+- **Rejects**: Uppercase-focused design, abstract words, cluttered layouts
+- **Ask**: "Does this reinforce the connection between the letter sound and the word?"
+
+### The Designer
+Cares about visual appeal and consistency across all cards.
+- **Needs**: Good typography, balanced layouts, appealing color palette
+- **Approves**: Professional look, visual variety without chaos, readable fonts
+- **Rejects**: Cluttered cards, inconsistent styling, poor image quality
+- **Ask**: "Would I be proud to show these cards to someone? Do they look intentional?"
+
+### The Engineer
+Keeps the codebase healthy and maintainable.
+- **Needs**: Clean code, good documentation, no over-engineering
+- **Approves**: Simple solutions, clear naming, appropriate abstractions
+- **Rejects**: Premature optimization, unnecessary complexity, copy-paste code
+- **Ask**: "Will I understand this code in 6 months? Is this the simplest solution?"
+
+### The Architect
+Oversees the project holistically and keeps all personas aligned.
+- **Needs**: Clear direction, manageable scope, personas working together
+- **Approves**: Features that serve multiple personas, good tradeoffs
+- **Rejects**: Scope creep, features that harm one persona for another
+- **Ask**: "Are we still building letter cards for Lena? Is everyone happy?"
+
+### Using personas
+
+When writing issues or PRs:
+- Consider which personas are affected
+- Note any tradeoffs between personas
+- The Architect resolves conflicts (usually: Lena > Jeroen > Pedagogue > Designer > Engineer)
 
 ## Setup
 
