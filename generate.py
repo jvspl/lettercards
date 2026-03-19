@@ -38,14 +38,22 @@ from PIL import Image
 
 CARD_W = 6 * cm
 CARD_H = 9 * cm
-MARGIN = 0.8 * cm          # page margin
-SPACING = 0.3 * cm         # gap between cards
+SPACING = 0.3 * cm         # gap between cards (cut lines)
 CORNER_R = 3 * mm          # rounded corner radius
 PAGE_W, PAGE_H = A4
 
-# Derived: how many cards fit per page
-COLS = int((PAGE_W - 2 * MARGIN + SPACING) / (CARD_W + SPACING))
-ROWS = int((PAGE_H - 2 * MARGIN + SPACING) / (CARD_H + SPACING))
+# Fixed 3x3 grid, centered on page for easy cutting
+COLS = 3
+ROWS = 3
+
+# Calculate margins to center the grid
+# Total grid size
+GRID_W = COLS * CARD_W + (COLS - 1) * SPACING
+GRID_H = ROWS * CARD_H + (ROWS - 1) * SPACING
+
+# Center on page
+MARGIN_X = (PAGE_W - GRID_W) / 2
+MARGIN_Y = (PAGE_H - GRID_H) / 2
 
 # Colors
 HIGHLIGHT_COLOR = HexColor("#E63946")   # red for the first letter
@@ -404,8 +412,8 @@ def generate_pdf(cards, output_path, images_dir, personal_dir, available_fonts, 
                 if card_idx >= total:
                     break
 
-                x = MARGIN + col * (CARD_W + SPACING)
-                y = PAGE_H - MARGIN - (row + 1) * CARD_H - row * SPACING
+                x = MARGIN_X + col * (CARD_W + SPACING)
+                y = PAGE_H - MARGIN_Y - (row + 1) * CARD_H - row * SPACING
 
                 item_type, card, font_name, img_path = all_items[card_idx]
 
