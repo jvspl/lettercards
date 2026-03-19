@@ -319,6 +319,64 @@ def center_crop_to_square(img):
     return img.crop((left, top, left + min_dim, top + min_dim))
 
 
+def remove_background(img, threshold=30):
+    """
+    Remove near-white/cream background from image, making it transparent.
+
+    Detects background color from corner pixels and makes similar pixels transparent.
+    This allows the card's cream background to show through cleanly.
+
+    Args:
+        img: PIL Image (RGB mode)
+        threshold: Color distance threshold for background detection (0-255)
+
+    Returns:
+        PIL Image with RGBA mode and transparent background
+    """
+    # Convert to RGBA
+    if img.mode != 'RGBA':
+        img = img.convert('RGBA')
+
+    pixels = img.load()
+    width, height = img.size
+
+    # Sample corner pixels to detect background color
+    corners = [
+        pixels[0, 0],
+        pixels[width-1, 0],
+        pixels[0, height-1],
+        pixels[width-1, height-1]
+    ]
+
+    # Average the corner colors (ignore alpha)
+    bg_r = sum(c[0] for c in corners) // 4
+    bg_g = sum(c[1] for c in corners) // 4
+    bg_b = sum(c[2] for c in corners) // 4
+
+    # Only process if background looks like white/cream (light colored)
+    if bg_r < 200 or bg_g < 200 or bg_b < 200:
+        # Background is not light, skip processing
+        return img
+
+    # Make pixels close to background color transparent
+    for y in range(height):
+        for x in range(width):
+            r, g, b, a = pixels[x, y]
+
+            # Calculate color distance from background
+            dist = abs(r - bg_r) + abs(g - bg_g) + abs(b - bg_b)
+
+            if dist < threshold:
+                # Make transparent
+                pixels[x, y] = (r, g, b, 0)
+            elif dist < threshold * 2:
+                # Partial transparency for anti-aliasing
+                alpha = int(255 * (dist - threshold) / threshold)
+                pixels[x, y] = (r, g, b, alpha)
+
+    return img
+
+
 def split_grid(img, names, cols, rows):
     """
     Split a grid image into individual images.
@@ -348,7 +406,10 @@ def split_grid(img, names, cols, rows):
         square = center_crop_to_square(cell)
 
         # Resize to 400x400
-        final = square.resize((400, 400), Image.LANCZOS)
+        resized = square.resize((400, 400), Image.LANCZOS)
+
+        # Remove background for clean card integration
+        final = remove_background(resized)
 
         results.append((name, final))
 
@@ -492,6 +553,53 @@ def cmd_split(args):
 
 # ── Main ───────────────────────────────────────────────────────────────────
 
+def cmd_fix_backgrounds(args):
+    """Remove backgrounds from existing images."""
+    # Find images to process
+    if args.names:
+        images = [IMAGES_DIR / f"{name}.png" for name in args.names]
+    else:
+        # Process all ChatGPT-generated images (skip placeholders)
+        images = []
+        for f in sorted(IMAGES_DIR.glob("*.png")):
+            # Check if it's a ChatGPT image (larger file size, not a placeholder)
+            if f.stat().st_size > 10000:  # > 10KB likely ChatGPT
+                images.append(f)
+
+    if not images:
+        print("No images to process.")
+        return
+
+    print(f"Processing {len(images)} images...")
+    processed = 0
+
+    for img_path in images:
+        if not img_path.exists():
+            print(f"  Skip: {img_path.name} (not found)")
+            continue
+
+        img = Image.open(img_path)
+
+        # Skip if already has transparency
+        if img.mode == 'RGBA':
+            # Check if it actually has transparent pixels
+            extrema = img.split()[-1].getextrema()
+            if extrema[0] < 255:  # Has some transparency
+                print(f"  Skip: {img_path.name} (already transparent)")
+                continue
+
+        # Convert and process
+        if img.mode != 'RGB':
+            img = img.convert('RGB')
+
+        result = remove_background(img)
+        result.save(img_path, 'PNG')
+        processed += 1
+        print(f"  ✓ {img_path.name}")
+
+    print(f"\nDone! Processed {processed} images.")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Pictogram workflow for letter cards",
@@ -521,6 +629,12 @@ def main():
     split_parser.add_argument('--keep', '-k', action='store_true',
                               help='Keep staging image after processing')
 
+    # Fix-backgrounds command
+    fix_bg_parser = subparsers.add_parser('fix-backgrounds',
+                                          help='Remove backgrounds from existing images')
+    fix_bg_parser.add_argument('names', nargs='*',
+                               help='Specific images to process (default: all ChatGPT images)')
+
     args = parser.parse_args()
 
     if args.command == 'status':
@@ -529,6 +643,8 @@ def main():
         cmd_prompt(args)
     elif args.command == 'split':
         cmd_split(args)
+    elif args.command == 'fix-backgrounds':
+        cmd_fix_backgrounds(args)
     else:
         parser.print_help()
 
