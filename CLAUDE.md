@@ -350,6 +350,29 @@ All images use a cream/beige background for consistency.
 - **Check for comments** before pushing: `gh pr view --comments`
 - Keep commits focused and descriptive
 
+### PR content requirements
+Every PR should demonstrate the work done:
+
+1. **Summary**: What does this PR do?
+2. **Problem**: What issue does it fix? (link to issue)
+3. **Solution**: How does it fix it?
+4. **Before/After**: Show the difference (screenshots, diagrams, code examples)
+5. **How to verify**: Steps to test the change
+6. **Result**: What's the outcome?
+
+Example for visual changes:
+```markdown
+## Before vs After
+**Before:** [describe old behavior]
+**After:** [describe new behavior]
+
+## How to Verify
+\`\`\`bash
+python generate.py --letters a,o
+# Open PDF, check that [specific thing]
+\`\`\`
+```
+
 ### Communication via GitHub
 - Jeroen may comment on issues/PRs from the web
 - Claude can check comments with `gh issue view #N --comments` or `gh pr view`
