@@ -44,6 +44,7 @@ except ImportError:
 STAGING_DIR = Path.home() / '.lettercards' / 'staging'
 IMAGES_DIR = Path(__file__).parent / 'images'
 CARDS_CSV = Path(__file__).parent / 'cards.csv'
+SOURCES_MD = Path(__file__).parent / 'images' / 'SOURCES.md'
 
 # Style guidance for consistent illustrations
 # Inspired by Dutch children's books that Lena loves:
@@ -354,6 +355,57 @@ def split_grid(img, names, cols, rows):
     return results
 
 
+def update_sources_md(names, prompt_words):
+    """
+    Update SOURCES.md table with full prompt for generated images.
+
+    Args:
+        names: List of image names that were generated
+        prompt_words: The words used in the ChatGPT prompt
+    """
+    from datetime import date
+    today = date.today().isoformat()
+
+    # Build the full prompt (escaped for markdown table)
+    cols, rows = GRID_LAYOUTS.get(len(prompt_words), (3, 2))
+    if len(prompt_words) == 1:
+        full_prompt = f"Create a {STYLE_PROMPT} Draw: {prompt_words[0]}. Make it centered on a cream/beige background, simple and recognizable for a toddler."
+    else:
+        full_prompt = f"Create a {cols}x{rows} grid of {STYLE_PROMPT} The {len(prompt_words)} items to draw (left to right, top to bottom): {', '.join(prompt_words)}. Each item should be in its own cell with a cream/beige background. Keep items centered and recognizable for a toddler."
+
+    # Read existing file
+    if not SOURCES_MD.exists():
+        print(f"  Warning: {SOURCES_MD} not found")
+        return
+
+    lines = SOURCES_MD.read_text().splitlines(keepends=True)
+
+    # Update matching rows
+    images_to_update = {name for name in names}
+    updated = []
+    new_lines = []
+
+    for line in lines:
+        # Check if this is a table row for one of our images
+        matched = False
+        for name in list(images_to_update):
+            if f"| {name} |" in line or f"![{name}]" in line:
+                # Replace with updated entry
+                new_lines.append(f"| ![{name}]({name}.png) | {name} | ChatGPT/DALL-E | {today} | {full_prompt} |\n")
+                images_to_update.remove(name)
+                updated.append(name)
+                matched = True
+                break
+        if not matched:
+            new_lines.append(line)
+
+    # Write back
+    SOURCES_MD.write_text(''.join(new_lines))
+
+    if updated:
+        print(f"  Updated SOURCES.md: {', '.join(updated)}")
+
+
 def cmd_split(args):
     """Split a grid image from staging into individual pictograms."""
     # Find grid image
@@ -416,21 +468,26 @@ def cmd_split(args):
     # Save results
     IMAGES_DIR.mkdir(exist_ok=True)
     print(f"\nSaving images:")
+    saved_names = []
     for name, processed in results:
         output_path = IMAGES_DIR / f"{name}.png"
         processed.save(output_path, 'PNG')
+        saved_names.append(name)
         print(f"  ✓ {output_path}")
+
+    # Update SOURCES.md with copyright/source info
+    update_sources_md(saved_names, names)
+
+    # Clean up staging (unless --keep)
+    if not args.keep:
+        grid_path.unlink()
+        print(f"  Removed {grid_path.name} from staging")
 
     print(f"\nDone! Generated {len(results)} images.")
     print(f"\nNext steps:")
     print(f"  1. Verify images look good")
     print(f"  2. Run: python generate.py")
     print(f"  3. Check the PDF")
-
-    # Optionally clean up staging
-    if not args.keep:
-        print(f"\nTip: Remove processed image from staging:")
-        print(f"  rm \"{grid_path}\"")
 
 
 # ── Main ───────────────────────────────────────────────────────────────────
