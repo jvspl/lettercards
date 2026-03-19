@@ -280,3 +280,12 @@ When working with Claude (CLI, Desktop, or web), you can get help selecting the 
 - Jeroen may comment on issues/PRs from the web
 - Claude can check comments with `gh issue view #N --comments` or `gh pr view`
 - At session start, Jeroen can point Claude to new comments to review
+
+### Session startup routine
+At the start of each session, Claude should:
+1. **Check the backlog** - `gh issue list --state open`
+2. **Review new issues/comments** - look for recent activity
+3. **Check open PRs** - `gh pr list --state open`
+4. **Think from personas** - what would Lena, Jeroen, Pedagogue want?
+5. **Clean up stale issues** - close completed work, update status
+6. **Suggest next steps** - offer 2-3 options based on priority
