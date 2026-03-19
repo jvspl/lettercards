@@ -343,6 +343,13 @@ All images use a cream/beige background for consistency.
 
 **Important:** Direct pushes to `master` are blocked. All changes must go through a PR with at least one approval.
 
+### PR best practices
+- **Don't force-push or amend** — make new commits instead to preserve history
+- **Update PR description** when making significant changes
+- **Reply to comments** explaining what was changed and how it addresses the feedback
+- **Check for comments** before pushing: `gh pr view --comments`
+- Keep commits focused and descriptive
+
 ### Communication via GitHub
 - Jeroen may comment on issues/PRs from the web
 - Claude can check comments with `gh issue view #N --comments` or `gh pr view`
