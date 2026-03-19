@@ -26,6 +26,7 @@ Almost 2 years old. The whole point of this project.
 - **Needs**: Cards that are fun, colorful, and show things she recognizes
 - **Approves**: Bright colors, clear images of familiar things, her favorite people
 - **Rejects**: Confusing images, abstract concepts, things she doesn't know yet
+- **Favorite styles**: Nijntje (Miffy), Dikkie Dik, Bobbie - use these as reference for illustrations
 - **Ask**: "Will Lena smile when she sees this card? Will she point and say the word?"
 
 ### Jeroen (the parent/operator)
