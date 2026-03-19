@@ -38,22 +38,25 @@ from PIL import Image
 
 CARD_W = 6 * cm
 CARD_H = 9 * cm
-SPACING = 0.3 * cm         # gap between cards (cut lines)
 CORNER_R = 3 * mm          # rounded corner radius
 PAGE_W, PAGE_H = A4
 
-# Fixed 3x3 grid, centered on page for easy cutting
+# Fixed 3x3 grid with uniform spacing for easy cutting
+# Cut lines go through the middle of the gaps
+# Edge margins = gap/2 so all cuts are equidistant
 COLS = 3
 ROWS = 3
 
-# Calculate margins to center the grid
-# Total grid size
-GRID_W = COLS * CARD_W + (COLS - 1) * SPACING
-GRID_H = ROWS * CARD_H + (ROWS - 1) * SPACING
+# Calculate spacing to fill page uniformly
+# Page = margin + card + gap + card + gap + card + margin
+# Where margin = gap/2, so: gap/2 + card + gap + card + gap + card + gap/2
+# = 3*card + 3*gap, therefore gap = (page - 3*card) / 3
+SPACING_X = (PAGE_W - COLS * CARD_W) / COLS
+SPACING_Y = (PAGE_H - ROWS * CARD_H) / ROWS
 
-# Center on page
-MARGIN_X = (PAGE_W - GRID_W) / 2
-MARGIN_Y = (PAGE_H - GRID_H) / 2
+# Edge margins are half the inter-card spacing
+MARGIN_X = SPACING_X / 2
+MARGIN_Y = SPACING_Y / 2
 
 # Colors
 HIGHLIGHT_COLOR = HexColor("#E63946")   # red for the first letter
@@ -412,8 +415,8 @@ def generate_pdf(cards, output_path, images_dir, personal_dir, available_fonts, 
                 if card_idx >= total:
                     break
 
-                x = MARGIN_X + col * (CARD_W + SPACING)
-                y = PAGE_H - MARGIN_Y - (row + 1) * CARD_H - row * SPACING
+                x = MARGIN_X + col * (CARD_W + SPACING_X)
+                y = PAGE_H - MARGIN_Y - (row + 1) * CARD_H - row * SPACING_Y
 
                 item_type, card, font_name, img_path = all_items[card_idx]
 
