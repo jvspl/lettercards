@@ -112,7 +112,8 @@ python generate.py --personal-dir /path # Custom personal photos location
 cards.csv              # Word list config (letter, word, image filename, font, personal flag)
 generate.py            # Main PDF generator (reportlab + Pillow)
 process_photo.py       # Personal photo processor (crop, resize, save)
-draw_placeholders.py   # Generates simple hand-drawn placeholder PNGs
+pictogram_workflow.py  # ChatGPT pictogram generator workflow
+draw_placeholders.py   # Generates simple hand-drawn placeholder PNGs (legacy)
 images/                # Generic card images (placeholders, clipart)
 fonts/                 # Drop custom .ttf files here, they're auto-registered
 requirements.txt       # Python dependencies (pillow, reportlab)
@@ -123,7 +124,7 @@ letterkaarten.pdf      # Generated output (gitignored)
 ### What goes where
 
 **In the repo (public):**
-- Code: `generate.py`, `draw_placeholders.py`
+- Code: `generate.py`, `pictogram_workflow.py`, `process_photo.py`, `draw_placeholders.py`
 - Config: `cards.csv`, `CLAUDE.md`
 - Fonts: `fonts/` folder
 - Generic images: `images/` (placeholders, non-personal illustrations)
@@ -253,12 +254,78 @@ When working with Claude (CLI, Desktop, or web), you can get help selecting the 
 | Lena | lena.png | Pending |
 | Laura | laura.png | Pending |
 
+## Pictogram workflow
+
+For generating child-friendly illustrations using ChatGPT/DALL-E. This replaces the simple geometric placeholders with proper illustrations.
+
+### Why ChatGPT?
+
+- **Quality**: ChatGPT/DALL-E produces high-quality, child-friendly illustrations in the style we need
+- **Claude limitation**: Claude's image generation doesn't match the quality needed for toddler-friendly illustrations
+- **Free tier**: We use ChatGPT's free tier, which has rate limits on image generation
+- **Grid optimization**: Generating 6 images in a 3x2 grid maximizes efficiency within rate limits
+- **Automation**: This script handles the splitting/processing so the manual work is minimal
+
+### Quick workflow
+
+```bash
+# 1. Check which images need work
+python pictogram_workflow.py status
+
+# 2. Generate a ChatGPT prompt for specific words
+python pictogram_workflow.py prompt eend zon fiets
+
+# 3. Paste the prompt in ChatGPT, download the grid image
+
+# 4. Drop the image in staging folder
+# Move/copy to ~/.lettercards/staging/
+
+# 5. Split the grid into individual images
+python pictogram_workflow.py split eend zon fiets
+
+# 6. Verify and generate PDF
+python generate.py
+```
+
+### Commands
+
+```bash
+# Status - see which images are missing or need improvement
+python pictogram_workflow.py status
+python pictogram_workflow.py status -v  # Include OK images
+
+# Prompt - generate ChatGPT prompts
+python pictogram_workflow.py prompt WORD WORD...  # Specific words
+python pictogram_workflow.py prompt --missing     # All missing images
+
+# Split - extract images from a ChatGPT grid
+python pictogram_workflow.py split NAMES...           # Auto-detect grid
+python pictogram_workflow.py split NAMES... --grid 3x2  # Specify grid
+python pictogram_workflow.py split NAMES... --preview   # Preview first
+```
+
+### Style guidance
+
+The prompts use a style inspired by Dutch children's books:
+- **Nijntje (Miffy)**: simple, rounded, minimalist
+- **Dikkie Dik**: warm, friendly, slightly more detail
+- **Bobbie**: colorful, appealing to toddlers
+
+All images use a cream/beige background for consistency.
+
+### Tips
+
+- ChatGPT generates 1024x1024 images
+- Grids of 6 (3x2) work well - saves on rate limits
+- The split command center-crops to square and resizes to 400x400
+- Keep staging images until verified (use `--keep` flag)
+
 ## Working style
 
 - Jeroen will add words and ideas over time
 - When adding a new word: add CSV row + image, regenerate PDF, verify it looks right
 - For personal photo cards: Jeroen provides the photos, they go in `~/.lettercards/personal/`
-- For generic words: draw_placeholders.py creates simple Pillow-drawn illustrations; these can be upgraded to better images over time
+- For generic words: use `pictogram_workflow.py` to generate illustrations via ChatGPT
 
 ## Workflow
 
