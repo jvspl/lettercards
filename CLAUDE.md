@@ -327,6 +327,21 @@ All images use a cream/beige background for consistency.
 - For personal photo cards: Jeroen provides the photos, they go in `~/.lettercards/personal/`
 - For generic words: use `pictogram_workflow.py` to generate illustrations via ChatGPT
 
+## Architecture decisions
+
+Significant decisions are recorded as ADRs in `docs/adr/`. See `docs/adr/README.md` for how to
+read, write, and supersede them.
+
+**Rule of thumb:** if a decision is hard to reverse, has real tradeoffs between options, or would
+confuse a future contributor without context — write an ADR. If it was obvious, don't bother.
+
+**ADRs are immutable once accepted.** To change a decision: write a new ADR that supersedes the
+old one. Update the old one's status. Never edit the body of an accepted ADR.
+
+| ADR | Title | Status |
+|-----|-------|--------|
+| [001](docs/adr/001-persona-orchestration.md) | Persona orchestration via Claude Code subagents | Accepted |
+
 ## Workflow
 
 ### Backlog
