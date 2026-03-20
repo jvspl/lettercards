@@ -52,7 +52,7 @@ SOURCES_MD = Path(__file__).parent / 'images' / 'SOURCES.md'
 # - Dikkie Dik: warm, friendly, slightly more detail
 # - Bobbie: colorful, appealing to toddlers
 # This prompt produces consistent, high-quality results in ChatGPT/DALL-E
-STYLE_PROMPT = """cute, simple, child-friendly illustration style similar to Dutch children's books like Nijntje (Miffy) or Dikkie Dik. Soft rounded shapes, warm colors, gentle outlines, cream/beige background. The style should be appealing to toddlers (age 2)."""
+STYLE_PROMPT = """cute, simple, child-friendly illustration style similar to Dutch children's books like Nijntje (Miffy) or Dikkie Dik. Soft rounded shapes, warm colors, gentle outlines, pure white (#FFFFFF) background. The style should be appealing to toddlers (age 2)."""
 
 # Grid layouts for ChatGPT image generation
 # We use grids to maximize efficiency with ChatGPT's free tier rate limits.
@@ -406,6 +406,47 @@ def update_sources_md(names, prompt_words):
         print(f"  Updated SOURCES.md: {', '.join(updated)}")
 
 
+def remove_background(img, threshold=20):
+    """
+    Remove near-white background, returning an RGBA image with transparency.
+
+    Samples the four corner pixels to detect the background colour, then
+    makes any pixel within `threshold` of that colour transparent.
+
+    Use only on freshly-generated pictograms with a clean white/near-white
+    background. For existing images with complex content, prefer regeneration
+    over post-processing — background removal can damage illustration detail.
+
+    Args:
+        img: PIL Image (RGB or RGBA)
+        threshold: Maximum colour distance from background to treat as transparent (0-255)
+
+    Returns:
+        PIL Image in RGBA mode
+    """
+    img = img.convert("RGBA")
+    pixels = img.load()
+    w, h = img.size
+
+    corners = [pixels[0, 0], pixels[w - 1, 0], pixels[0, h - 1], pixels[w - 1, h - 1]]
+    bg_r = sum(c[0] for c in corners) // 4
+    bg_g = sum(c[1] for c in corners) // 4
+    bg_b = sum(c[2] for c in corners) // 4
+
+    if bg_r < 220 or bg_g < 220 or bg_b < 220:
+        print(f"  Warning: background doesn't look white (avg corner: {bg_r},{bg_g},{bg_b}). Skipping.")
+        return img
+
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = pixels[x, y]
+            dist = max(abs(r - bg_r), abs(g - bg_g), abs(b - bg_b))
+            if dist <= threshold:
+                pixels[x, y] = (r, g, b, 0)
+
+    return img
+
+
 def cmd_split(args):
     """Split a grid image from staging into individual pictograms."""
     # Find grid image
@@ -468,8 +509,12 @@ def cmd_split(args):
     # Save results
     IMAGES_DIR.mkdir(exist_ok=True)
     print(f"\nSaving images:")
+    if args.remove_bg:
+        print("  Background removal enabled (--remove-bg)")
     saved_names = []
     for name, processed in results:
+        if args.remove_bg:
+            processed = remove_background(processed)
         output_path = IMAGES_DIR / f"{name}.png"
         processed.save(output_path, 'PNG')
         saved_names.append(name)
@@ -520,6 +565,8 @@ def main():
                               help='Preview without saving')
     split_parser.add_argument('--keep', '-k', action='store_true',
                               help='Keep staging image after processing')
+    split_parser.add_argument('--remove-bg', action='store_true',
+                              help='Remove white background (opt-in). Use on fresh ChatGPT images only.')
 
     args = parser.parse_args()
 
