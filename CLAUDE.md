@@ -364,6 +364,10 @@ old one. Update the old one's status. Never edit the body of an accepted ADR.
 - **Reply to comments** explaining what was changed and how it addresses the feedback
 - **Check for comments** before pushing: `gh pr view --comments`
 - Keep commits focused and descriptive
+- **Sign all GitHub activity** — comments and issues created by Claude Code must end with:
+  ```
+  — 🤖 Claude Code
+  ```
 
 ### PR content requirements
 Every PR should demonstrate the work done:
