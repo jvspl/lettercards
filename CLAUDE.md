@@ -345,10 +345,15 @@ All images use a cream/beige background for consistency.
 
 ### PR best practices
 - **Don't force-push or amend** — make new commits instead to preserve history
+- **Don't close and reopen PRs** — add new commits to the existing PR to preserve review context
 - **Update PR description** when making significant changes
 - **Reply to comments** explaining what was changed and how it addresses the feedback
 - **Check for comments** before pushing: `gh pr view --comments`
 - Keep commits focused and descriptive
+
+### Shell command conventions
+- **No compound commands** — never chain with `&&` or `;`; use separate Bash calls instead (permission matching breaks on compound commands)
+- **`gh pr create` / `gh issue create` body** — always use inline `--body "..."` string; never heredocs or `--body-file` with a temp file
 
 ### Communication via GitHub
 - Jeroen may comment on issues/PRs from the web
