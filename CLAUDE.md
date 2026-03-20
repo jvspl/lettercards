@@ -353,7 +353,7 @@ All images use a cream/beige background for consistency.
 
 ### Shell command conventions
 - **No compound commands** — never chain with `&&` or `;`; use separate Bash calls instead (permission matching breaks on compound commands)
-- **`gh pr create` / `gh issue create` body** — always use inline `--body "..."` string; never heredocs or `--body-file` with a temp file
+- **`gh pr create` / `gh issue create` body** — write body to `.tmp/pr-body.md`, use `--body-file .tmp/pr-body.md`; never inline `--body` with `#` or newlines (breaks permission matching), never heredocs
 
 ### Communication via GitHub
 - Jeroen may comment on issues/PRs from the web
