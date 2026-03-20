@@ -95,16 +95,26 @@ LETTER_COLORS = {
 
 FONT_DIR = Path(__file__).parent / "fonts"
 SYSTEM_FONTS = {
+    # macOS — visually distinct, child-friendly
+    "ArialRounded": "/System/Library/Fonts/Supplemental/Arial Rounded Bold.ttf",
+    "ComicSans":    "/System/Library/Fonts/Supplemental/Comic Sans MS Bold.ttf",
+    "GeorgiaBold":  "/System/Library/Fonts/Supplemental/Georgia Bold.ttf",
+    "BradleyHand":  "/System/Library/Fonts/Supplemental/Bradley Hand Bold.ttf",
+    # Linux fallbacks
     "DejaVuSans":     "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
     "Lato":           "/usr/share/fonts/truetype/lato/Lato-Bold.ttf",
-    "Carlito":        "/usr/share/fonts/truetype/crosextra/Carlito-Bold.ttf",
-    "LiberationSans": "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
     "DejaVuSerif":    "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
     "Caladea":        "/usr/share/fonts/truetype/crosextra/Caladea-Bold.ttf",
 }
 
-# Default rotation of fonts so each letter gets variety
-DEFAULT_FONTS = ["DejaVuSans", "Lato", "Carlito", "LiberationSans"]
+# Default rotation — ordered by visual distinctiveness.
+# pick_font() filters to only registered fonts, so missing paths are skipped gracefully.
+# macOS: rounded sans / playful / serif / handwritten — four clearly different styles
+# Linux: sans / sans / serif / serif — better variety than four identical sans-serifs
+DEFAULT_FONTS = [
+    "ArialRounded", "ComicSans", "GeorgiaBold", "BradleyHand",  # macOS
+    "DejaVuSerif", "Caladea", "DejaVuSans", "Lato",             # Linux
+]
 
 
 # ── Personal Images Directory ──────────────────────────────────────
