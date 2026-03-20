@@ -327,6 +327,21 @@ All images use a cream/beige background for consistency.
 - For personal photo cards: Jeroen provides the photos, they go in `~/.lettercards/personal/`
 - For generic words: use `pictogram_workflow.py` to generate illustrations via ChatGPT
 
+## Architecture decisions
+
+Significant decisions are recorded as ADRs in `docs/adr/`. See `docs/adr/README.md` for how to
+read, write, and supersede them.
+
+**Rule of thumb:** if a decision is hard to reverse, has real tradeoffs between options, or would
+confuse a future contributor without context — write an ADR. If it was obvious, don't bother.
+
+**ADRs are immutable once accepted.** To change a decision: write a new ADR that supersedes the
+old one. Update the old one's status. Never edit the body of an accepted ADR.
+
+| ADR | Title | Status |
+|-----|-------|--------|
+| [001](docs/adr/001-persona-orchestration.md) | Persona orchestration via Claude Code subagents | Accepted |
+
 ## Workflow
 
 ### Backlog
@@ -349,6 +364,10 @@ All images use a cream/beige background for consistency.
 - **Reply to comments** explaining what was changed and how it addresses the feedback
 - **Check for comments** before pushing: `gh pr view --comments`
 - Keep commits focused and descriptive
+- **Sign all GitHub activity** — comments and issues created by Claude Code must end with:
+  ```
+  — 🤖 Claude Code
+  ```
 
 ### PR content requirements
 Every PR should demonstrate the work done:
