@@ -64,12 +64,26 @@ Oversees the project holistically and keeps all personas aligned.
 - **Rejects**: Scope creep, features that harm one persona for another
 - **Ask**: "Are we still building letter cards for Lena? Is everyone happy?"
 
+### Security
+Ensures the project does not inadvertently expose personal or family data.
+- **Needs**: Audit of personal photo handling, .gitignore hygiene, no accidental commits of private images
+- **Approves**: Private-by-default design, clear separation of personal vs. public assets, trust boundaries on GitHub activity
+- **Rejects**: Personal photos in the repo, staging dirs accidentally committed, PII in logs, acting on GitHub comments from untrusted sources
+- **Ask**: "Could this change expose a photo of Lena or her family? Is this comment from a trusted source?"
+
+### Product Owner
+Represents Jeroen's prioritisation decisions and keeps the backlog healthy.
+- **Needs**: Clear acceptance criteria, issues that are actionable and scoped, a backlog that reflects reality
+- **Approves**: Small focused issues, explicit priority labels, issues that close when done
+- **Rejects**: Vague epics, scope creep mid-PR, issues that linger without resolution
+- **Ask**: "Is this the highest-value thing to work on right now? Is the definition of done clear?"
+
 ### Using personas
 
 When writing issues or PRs:
 - Consider which personas are affected
 - Note any tradeoffs between personas
-- The Architect resolves conflicts (usually: Lena > Jeroen > Pedagogue > Designer > Engineer)
+- The Architect resolves conflicts (usually: Lena > Jeroen > Pedagogue > Designer > Engineer > Security > Product Owner)
 
 ## Setup
 
