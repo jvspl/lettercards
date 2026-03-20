@@ -112,6 +112,37 @@ The main Claude Code session acts as orchestrator. It:
 
 The orchestrator does not do the work itself — it routes and synthesises.
 
+### ORCHESTRATOR.md — persistent repo memory
+
+The orchestrator session maintains a file called `ORCHESTRATOR.md` in the repo root. This is a living document the orchestrator actively reads and updates, distinct from the auto-managed `memory: project` files. It serves two purposes:
+
+1. **Survives context compaction** — when a long session compacts, Claude preserves what's in ORCHESTRATOR.md. Without this, the repo map and accumulated decisions can be silently lost.
+2. **Human-readable source of truth** — Jeroen can read it to understand what the orchestrator knows, correct it, or prime a fresh session.
+
+Contents of ORCHESTRATOR.md at minimum:
+- Architecture map (modules, entry points, dependencies)
+- Conventions and patterns discovered
+- Decisions made (links to ADRs and issues)
+- Known fragile areas
+- Current state (what's in flight, what was recently changed)
+
+The orchestrator updates ORCHESTRATOR.md after every subagent completes and before any context compaction checkpoint.
+
+### File ownership protocol
+
+When the orchestrator spawns a subagent, the prompt must explicitly state:
+- **Goal**: what to achieve
+- **Files it owns**: the only files it may edit
+- **Files it must not touch**: explicitly named off-limits files
+- **Conventions to follow**: from ORCHESTRATOR.md
+- **How to verify**: what to run and what a passing result looks like
+
+This is stricter than `isolation: worktree` alone — worktree prevents branch conflicts, but file ownership prevents a subagent from touching unrelated parts of the codebase within its worktree.
+
+### Verify-before-return protocol
+
+Subagents must verify their own work before returning to the orchestrator. For this project that means running `python generate.py --letters <affected>` and confirming the output looks correct. The subagent reports: what it changed, what it verified, and any concerns. The orchestrator then decides whether to accept, reject, or spawn a follow-up.
+
 ### Key constraint: subagents cannot spawn subagents
 
 Claude Code subagents cannot invoke other subagents. The orchestrator must always be the main session. This means:
@@ -173,4 +204,6 @@ A Python script using the Anthropic SDK spawning `claude` CLI subprocesses. More
 - [Claude Code: Create custom subagents](https://code.claude.com/docs/en/sub-agents)
 - [Claude Code: Orchestrate agent teams](https://code.claude.com/docs/en/agent-teams)
 - [Anthropic: Building effective agents](https://www.anthropic.com/research/building-effective-agents)
+- [Matt Shumer: 10x Your Coding Agent Productivity](https://x.com/mattshumer_/status/2035058834117419036) — source of ORCHESTRATOR.md pattern, file ownership protocol, and verify-before-return convention
 - GitHub issue #43: Define persona operating model
+- GitHub issue #45: Epic — persona orchestration via Claude Code subagents
