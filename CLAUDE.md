@@ -374,6 +374,7 @@ old one. Update the old one's status. Never edit the body of an accepted ADR.
 
 ### PR best practices
 - **Don't force-push or amend** — make new commits instead to preserve history
+- **Don't close and reopen PRs** — add new commits to the existing PR to preserve review context
 - **Update PR description** when making significant changes
 - **Reply to comments** explaining what was changed and how it addresses the feedback
 - **Check for comments** before pushing: `gh pr view --comments`
@@ -405,6 +406,10 @@ python generate.py --letters a,o
 # Open PDF, check that [specific thing]
 \`\`\`
 ```
+
+### Shell command conventions
+- **No compound commands** — never chain with `&&` or `;`; use separate Bash calls instead (permission matching breaks on compound commands)
+- **`gh pr create` / `gh issue create` body** — write body to `.tmp/pr-body.md`, use `--body-file .tmp/pr-body.md`; never inline `--body` with `#` or newlines (breaks permission matching), never heredocs
 
 ### Communication via GitHub
 - Jeroen may comment on issues/PRs from the web
