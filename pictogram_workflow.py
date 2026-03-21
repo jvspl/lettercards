@@ -52,7 +52,7 @@ SOURCES_MD = Path(__file__).parent / 'images' / 'SOURCES.md'
 # - Dikkie Dik: warm, friendly, slightly more detail
 # - Bobbie: colorful, appealing to toddlers
 # This prompt produces consistent, high-quality results in ChatGPT/DALL-E
-STYLE_PROMPT = """cute, simple, child-friendly illustration style similar to Dutch children's books like Nijntje (Miffy) or Dikkie Dik. Soft rounded shapes, warm colors, gentle outlines, pure white (#FFFFFF) background. The style should be appealing to toddlers (age 2)."""
+STYLE_PROMPT = """cute, simple, child-friendly illustration style similar to Dutch children's books like Nijntje (Miffy) or Dikkie Dik. Soft rounded shapes, warm colors, gentle outlines, pure white (#FFFFFF) background. The style should be appealing to toddlers (age 2). No text, labels, or captions in the image."""
 
 # Grid layouts for ChatGPT image generation
 # We use grids to maximize efficiency with ChatGPT's free tier rate limits.
