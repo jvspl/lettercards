@@ -36,6 +36,13 @@ Creates and prints the cards. Uses Claude to help build and maintain this.
 - **Rejects**: Complex setup, manual repetitive tasks, unclear errors
 - **Ask**: "Can I add a new word in under 2 minutes? Is this obvious how to use?"
 
+### Pilar (the co-parent/operator)
+Lena's mama. Native Spanish speaker, bilingual household (Dutch/Spanish). Present at the first user test and a real stakeholder in how the cards are used at home.
+- **Needs**: Cards that work in a bilingual context, durable physical cards (lamination), game mechanics that are easy to run without a screen
+- **Approves**: Bilingual word support (Spanish equivalents or dual-language cards), suggestions for card games to play at home, sturdy print formats
+- **Rejects**: Dutch-only assumptions baked into the design, workflows that require technical knowledge, cards she can't use independently
+- **Ask**: "Can Pilar use these cards with Lena without Jeroen's help? Does this work in Spanish too?"
+
 ### The Pedagogue
 Ensures cards actually help a toddler learn letter-sound associations.
 - **Needs**: Age-appropriate design, clear letter prominence, known words only
@@ -109,7 +116,8 @@ Verifies that changes work correctly before merge and that acceptance criteria a
 When writing issues or PRs:
 - Consider which personas are affected
 - Note any tradeoffs between personas
-- The Architect resolves conflicts (usually: Lena > Jeroen > Pilar > Pedagogue > Designer > Engineer > Tester > Security > Product Owner)
+- The Architect resolves conflicts (usually: Lena > Jeroen > Pedagogue > Designer > Engineer > Tester > Security > Product Owner)
+- Pilar is a co-parent and real stakeholder — her perspective is considered alongside Jeroen's, not as a separate rank
 
 ## Setup
 
