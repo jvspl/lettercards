@@ -257,12 +257,17 @@ def draw_picture_card(c, x, y, word, image_path, font_name, letter):
     lw = pdfmetrics.stringWidth(letter, font_name, badge_font_size)
     c.drawString(badge_cx - lw / 2, badge_cy - badge_font_size * 0.32, letter)
 
-    # Uppercase ghost in top-right corner — subtle introduction of the other form
+    # Uppercase badge in top-right corner — outlined circle, accent color letter
     upper = letter.upper()
+    upper_cx = x + CARD_W - 4 * mm - badge_r
+    upper_cy = badge_cy
+    c.setStrokeColor(accent)
+    c.setFillColor(white)
+    c.circle(upper_cx, upper_cy, badge_r, fill=1, stroke=1)
     c.setFont(font_name, badge_font_size)
-    c.setFillColor(Color(accent.red, accent.green, accent.blue, alpha=0.4))
+    c.setFillColor(accent)
     uw = pdfmetrics.stringWidth(upper, font_name, badge_font_size)
-    c.drawString(x + CARD_W - 4 * mm - badge_r - uw / 2, badge_cy - badge_font_size * 0.32, upper)
+    c.drawString(upper_cx - uw / 2, upper_cy - badge_font_size * 0.32, upper)
 
 
 def draw_letter_card(c, x, y, letter, font_name):
