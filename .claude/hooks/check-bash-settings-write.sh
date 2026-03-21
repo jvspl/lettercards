@@ -16,7 +16,7 @@
 
 # Warn loudly if jq is not installed
 if ! command -v jq >/dev/null 2>&1; then
-  printf '{"systemMessage":"⚠️ jq is not installed — Bash settings protection is disabled. Install jq (brew install jq) to enable security checks."}'
+  printf '{"continue": false, "stopReason": "⛔ jq is required for security hooks but is not installed. Run: brew install jq"}'
   exit 0
 fi
 
