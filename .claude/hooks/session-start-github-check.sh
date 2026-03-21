@@ -15,8 +15,17 @@ issues=$(gh issue list --state open --json number,title,updatedAt,comments --lim
 # Build summary of open PRs
 pr_summary=$(echo "$prs" | jq -r '.[] | "  PR #\(.number): \(.title)"' 2>/dev/null)
 
-# Build summary of issues with comments (may have new activity)
-issues_with_comments=$(echo "$issues" | jq -r '.[] | select(.comments | length > 0) | "  #\(.number): \(.title) (\(.comments | length) comment(s))"' 2>/dev/null)
+# Build summary of issues with comments, flagging non-jvspl authors
+issues_with_comments=$(echo "$issues" | jq -r '
+  .[] | select(.comments | length > 0) |
+  "  #\(.number): \(.title)",
+  (.comments[] |
+    if .author.login == "jvspl"
+    then "    💬 @\(.author.login): \(.body | split("\n")[0] | .[0:100])"
+    else "    ⚠️ external comment from @\(.author.login): \(.body | split("\n")[0] | .[0:100])"
+    end
+  )
+' 2>/dev/null)
 
 msg="📋 Session start — GitHub status:"
 

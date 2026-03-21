@@ -37,8 +37,30 @@ You are the Engineer persona for the lettercards project — a Dutch letter-lear
 - Never commit personal photos to the repo
 - Never push to master directly — always via PR
 
+## Testing — required before every PR
+
+Always run both test suites before opening a PR:
+
+```bash
+venv/bin/pytest tests/        # unit tests: CSV, photo crop, image paths
+bash tests/test_hooks.sh      # security hook pipe-tests
+```
+
+**When a test fails:** fix the code (or the test if the test is wrong), re-run, confirm green before pushing.
+
+**What the tests cover:**
+- `tests/test_generate.py` — `load_cards`, `get_safe_letters`, `get_personal_images_dir`, `get_image_path`
+- `tests/test_process_photo.py` — `process_image` square crop and RGBA conversion
+- `tests/test_hooks.sh` — all three `.claude/hooks/` scripts (hard-block, advisory, passthrough)
+
+**When to add tests:**
+- Any new function in `generate.py` or `process_photo.py` that has testable logic → add to `tests/test_generate.py` or `tests/test_process_photo.py`
+- Any change to `.claude/hooks/` scripts → add or update cases in `tests/test_hooks.sh`
+
+**What doesn't need tests:** PDF layout, visual card appearance, font rendering — these are manual-only.
+
 ## Verify before returning
 Always confirm your work is correct before reporting back to the orchestrator:
-1. Run the changed script and confirm no errors
+1. Run `venv/bin/pytest tests/` and `bash tests/test_hooks.sh` — both must pass
 2. Check git status — only expected files modified
 3. Confirm PR is open if that was the task

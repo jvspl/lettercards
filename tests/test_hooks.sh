@@ -151,6 +151,17 @@ assert_silent       "Silent: payload with no command field" "$out"
 
 # ────────────────────────────────────────────────────────────────────────────
 echo ""
+echo "=== jq-missing: fail-closed behaviour ==="
+# session-start-github-check.sh is excluded: it calls gh live and cannot be pipe-tested.
+
+out=$(write_payload ".claude/settings.local.json" '{}' | env PATH=/nonexistent /bin/bash "$H1")
+assert_contains "H1 (prewrite): hard-blocks when jq is missing" '"continue": false' "$out"
+
+out=$(bash_payload 'echo {} > .claude/settings.local.json' | env PATH=/nonexistent /bin/bash "$H3")
+assert_contains "H3 (bash-write): hard-blocks when jq is missing" '"continue": false' "$out"
+
+# ────────────────────────────────────────────────────────────────────────────
+echo ""
 echo "=== Results ==="
 echo "  Passed : $PASS"
 echo "  Failed : $FAIL"

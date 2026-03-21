@@ -294,8 +294,8 @@ When working with Claude (CLI, Desktop, or web), you can get help selecting the 
 | Person | Filename | Status |
 |--------|----------|--------|
 | abu | abu.png | Done |
-| oma | oma.png | Pending |
-| opa | opa.png | Pending |
+| oma | oma.png | Done |
+| opa | opa.png | Done |
 | mama | mama.png | Pending |
 | papa | papa.png | Pending |
 | Mees | mees.png | Pending |
@@ -389,6 +389,7 @@ old one. Update the old one's status. Never edit the body of an accepted ADR.
 | ADR | Title | Status |
 |-----|-------|--------|
 | [001](docs/adr/001-persona-orchestration.md) | Persona orchestration via Claude Code subagents | Accepted |
+| [002](docs/adr/002-testing-strategy.md) | Three-tier testing strategy (pytest + hook pipe-tests + manual + CI) | Proposed |
 
 ## Workflow
 
