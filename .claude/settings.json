@@ -21,6 +21,16 @@
             "statusMessage": "Checking settings file safety..."
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/check-bash-settings-write.sh",
+            "statusMessage": "Checking for settings writes via Bash..."
+          }
+        ]
       }
     ],
     "PostToolUse": [
