@@ -100,7 +100,7 @@ Verifies that changes work correctly before merge and that acceptance criteria a
 
 - [ ] Does the PR have a "How to Verify" section with concrete steps?
 - [ ] For visual changes: are before/after screenshots included?
-- [ ] Do screenshots use safe letters only (no personal cards — not `a, o, m, p, l`)?
+- [ ] For screenshots: were personal cards excluded? (use `--safe-letters-only`)
 - [ ] Does the change match the issue scope — no unasked-for extras?
 - [ ] Is the commit message accurate and does it reference the issue?
 
