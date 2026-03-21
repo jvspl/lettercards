@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/check-settings-prewrite.sh",
+            "statusMessage": "Checking settings file safety..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/check-settings-change.sh",
+            "statusMessage": "Checking for settings file changes..."
+          }
+        ]
+      }
+    ]
+  }
+}
