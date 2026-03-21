@@ -14,6 +14,7 @@ Usage:
     python generate.py --letters a,d,o      # Only specific letters
     python generate.py --font Lato          # Override font for all
     python generate.py --personal-dir /path # Override personal images location
+    python generate.py --safe-letters-only  # Exclude letters with personal=yes cards
 
 Personal images location (for photos marked personal=yes in CSV):
   1. CLI flag: --personal-dir /custom/path
@@ -126,6 +127,34 @@ def get_personal_images_dir(cli_arg=None):
     if env_dir := os.environ.get('LETTERCARDS_PERSONAL_DIR'):
         return Path(env_dir)
     return Path.home() / '.lettercards' / 'personal'
+
+def get_safe_letters(cards_csv_path):
+    """Return the set of letters that have NO personal=yes entries in the CSV.
+
+    Useful for generating screenshots or previews that must not include
+    personal family photos. Any letter with at least one personal=yes word
+    is considered unsafe and excluded from the result.
+    """
+    unsafe = set()
+    all_letters = set()
+    try:
+        with open(cards_csv_path, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                letter = row.get('letter', '').strip()
+                if not letter or letter.startswith('#'):
+                    continue
+                word = row.get('word', '').strip()
+                if not word or 'geen voorbeeld' in word:
+                    continue
+                letter_lower = letter.lower()
+                all_letters.add(letter_lower)
+                if row.get('personal', 'no').strip().lower() == 'yes':
+                    unsafe.add(letter_lower)
+    except FileNotFoundError:
+        return set()
+    return all_letters - unsafe
+
 
 def register_fonts():
     """Register system fonts and any custom fonts in fonts/ folder."""
@@ -479,6 +508,8 @@ def main():
                         help='Path to the CSV config file')
     parser.add_argument('--personal-dir', type=str, default=None,
                         help='Directory for personal photos (default: ~/.lettercards/personal/)')
+    parser.add_argument('--safe-letters-only', action='store_true',
+                        help='Exclude any letter that has at least one personal=yes card (useful for screenshots)')
     args = parser.parse_args()
 
     base_dir = Path(__file__).parent
@@ -493,7 +524,11 @@ def main():
 
     # Parse letter filter
     letters_filter = None
-    if args.letters:
+    if args.safe_letters_only:
+        safe = get_safe_letters(csv_path)
+        letters_filter = sorted(safe)
+        print(f"Safe letters (no personal=yes entries): {', '.join(letters_filter)}")
+    elif args.letters:
         letters_filter = [l.strip().lower() for l in args.letters.split(',')]
         print(f"Filtering letters: {', '.join(letters_filter)}")
 
