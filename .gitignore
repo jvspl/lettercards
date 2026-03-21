@@ -3,4 +3,4 @@ __pycache__/
 .DS_Store
 venv/
 letterkaarten.pdf
-.tmp/pr-body.md
+.tmp/
