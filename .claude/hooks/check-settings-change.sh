@@ -2,9 +2,15 @@
 # Hook: PostToolUse on Write|Edit
 # Fires when a Claude settings file is modified.
 # Outputs a systemMessage prompting Security persona review.
+#
+# NOTE: Claude Code runs hooks from the project root, so the relative
+# path in settings.json (bash .claude/hooks/...) is intentional and safe.
 
-# Skip if jq not installed
-command -v jq >/dev/null 2>&1 || exit 0
+# Warn loudly if jq is not installed — do not silently pass
+if ! command -v jq >/dev/null 2>&1; then
+  printf '{"systemMessage":"⚠️ jq is not installed — settings file protection is disabled. Install jq (brew install jq) to enable security checks."}'
+  exit 0
+fi
 
 # Read stdin once into a variable
 input=$(cat)
