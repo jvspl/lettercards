@@ -109,9 +109,8 @@ H3="$HOOKS_DIR/check-bash-settings-write.sh"
 out=$(bash_payload 'echo {"bypassPermissions":[]} > .claude/settings.local.json' | bash "$H3")
 assert_contains     "Hard block: redirect with bypassPermissions" '"continue": false' "$out"
 
-# Requires PR #73: case-insensitive grep (-i) in check-bash-settings-write.sh
-#out=$(bash_payload 'echo {"BypassPermissions":[]} > .claude/settings.local.json' | bash "$H3")
-#assert_contains     "Hard block: BypassPermissions (capital B, case-insensitive)" '"continue": false' "$out"
+out=$(bash_payload 'echo {"BypassPermissions":[]} > .claude/settings.local.json' | bash "$H3")
+assert_contains     "Hard block: BypassPermissions (capital B, case-insensitive)" '"continue": false' "$out"
 
 out=$(bash_payload 'echo {} > .claude/settings.local.json' | bash "$H3")
 assert_contains     "Advisory: redirect to settings.local.json" 'systemMessage' "$out"
@@ -126,11 +125,11 @@ assert_contains     "Advisory: tee to settings.local.json" 'systemMessage' "$out
 out=$(bash_payload "sed -i 's/x/y/' .claude/settings.local.json" | bash "$H3")
 assert_contains     "Advisory: sed -i on settings.local.json" 'systemMessage' "$out"
 
-# Requires PR #73: cp/mv patterns added to check-bash-settings-write.sh
-#out=$(bash_payload 'cp /tmp/x.json .claude/settings.local.json' | bash "$H3")
-#assert_contains     "Advisory: cp to settings.local.json" 'systemMessage' "$out"
-#out=$(bash_payload 'mv /tmp/x.json .claude/settings.json' | bash "$H3")
-#assert_contains     "Advisory: mv to settings.json" 'systemMessage' "$out"
+out=$(bash_payload 'cp /tmp/x.json .claude/settings.local.json' | bash "$H3")
+assert_contains     "Advisory: cp to settings.local.json" 'systemMessage' "$out"
+
+out=$(bash_payload 'mv /tmp/x.json .claude/settings.json' | bash "$H3")
+assert_contains     "Advisory: mv to settings.json" 'systemMessage' "$out"
 
 out=$(bash_payload 'cat .claude/settings.json' | bash "$H3")
 assert_silent       "Silent: cat (read only)" "$out"
