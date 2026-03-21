@@ -401,8 +401,29 @@ old one. Update the old one's status. Never edit the body of an accepted ADR.
 1. Pick an issue from the backlog
 2. Create a feature branch: `git checkout -b issue-3-letter-i`
 3. Make changes, test with `python generate.py`
-4. Create PR referencing the issue (e.g., "Fixes #3")
-5. Wait for review/approval, then merge — issue auto-closes
+4. Run automated tests: `venv/bin/pytest tests/` and `bash tests/test_hooks.sh`
+5. Create PR referencing the issue (e.g., "Fixes #3")
+6. Wait for review/approval, then merge — issue auto-closes
+
+### Automated tests
+
+```bash
+venv/bin/pytest tests/          # Unit tests: CSV parsing, photo crop, image paths
+bash tests/test_hooks.sh        # Hook pipe-tests: security hook behaviour
+```
+
+**What's tested:**
+- `tests/test_generate.py` — CSV parsing, `--safe-letters-only`, personal dir lookup, image path resolution
+- `tests/test_process_photo.py` — square crop logic (portrait top-crop, landscape center-crop), RGBA conversion
+- `tests/test_hooks.sh` — security hook hard-block and advisory behaviour
+
+**When to run:**
+- Before any PR that touches `generate.py`, `process_photo.py`, or `.claude/hooks/`
+- For visual changes: also run `python generate.py --letters d,e,w --safe-letters-only` and check the PDF
+
+**What's NOT automated (manual review required):**
+- Card layout, spacing, colors — open the PDF and look
+- Font variety across cards
 
 **Important:** Direct pushes to `master` are blocked. All changes must go through a PR with at least one approval.
 
