@@ -438,7 +438,7 @@ For PRs that change card visuals, always include before/after screenshots in `do
 4. Commit both to `docs/previews/issue-{N}-before.png` and `issue-{N}-after.png`
 5. Reference in PR body using raw GitHub URL: `https://raw.githubusercontent.com/jvspl/lettercards/{branch}/docs/previews/...`
 
-**CRITICAL — never include personal cards in screenshots.** Personal cards are on letters: `a, o, m, p, l`. Always use safe letters: `d, e, w` (or any letter with no `personal=yes` entries in `cards.csv`).
+**CRITICAL — never include personal cards in screenshots.** Use `python generate.py --safe-letters-only` to automatically filter to only letters with no `personal=yes` entries in `cards.csv`. This is dynamic — it updates automatically as the word list grows.
 
 ### Communication via GitHub
 - Jeroen may comment on issues/PRs from the web
@@ -453,3 +453,22 @@ At the start of each session, Claude should:
 4. **Think from personas** - what would Lena, Jeroen, Pedagogue want?
 5. **Clean up stale issues** - close completed work, update status
 6. **Suggest next steps** - offer 2-3 options based on priority
+
+### Subagent efficiency — bulk GitHub fetching
+When spawning subagents to read the backlog, always instruct them to fetch in bulk — not one issue at a time:
+
+```bash
+# All issues with bodies, labels, and comments in one call
+gh issue list --state open --json number,title,body,labels,comments --limit 100
+
+# All open PRs with full details
+gh pr list --state open --json number,title,body,labels,comments
+```
+
+For full project context, subagents should also read:
+- `CLAUDE.md` — personas, workflow, conventions
+- `README.md` — project overview
+- `docs/adr/` — architecture decisions
+- `cards.csv` — current word list (which letters/words exist, which are personal)
+
+Combined, this gives a subagent complete context in ~5 tool calls. Never instruct subagents to call `gh issue view N` in a loop.
