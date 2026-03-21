@@ -407,6 +407,13 @@ python generate.py --letters a,o
 \`\`\`
 ```
 
+### GitHub comments and PRs
+All GitHub comments, PR descriptions, and issue bodies written by Claude **must be signed**. Since `gh` posts as Jeroen's account, the signature makes authorship clear:
+
+- PR/issue bodies: end with `🤖 Generated with [Claude Code](https://claude.com/claude-code)`
+- PR comments (`gh pr comment`): end with `— 🤖 Claude`
+- Issue comments (`gh issue comment`): end with `— 🤖 Claude`
+
 ### Shell command conventions
 - **No compound commands** — never chain with `&&` or `;`; use separate Bash calls instead (permission matching breaks on compound commands)
 - **`gh pr create` / `gh issue create` body** — write body to `.tmp/pr-body.md`, use `--body-file .tmp/pr-body.md`; never inline `--body` with `#` or newlines (breaks permission matching), never heredocs
