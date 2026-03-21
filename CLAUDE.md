@@ -279,7 +279,7 @@ When working with Claude (CLI, Desktop, or web), you can get help selecting the 
 
 1. Drop multiple candidate photos into `~/.lettercards/staging/`
 2. Tell Claude who they're for (e.g., "photos of oma in staging")
-3. Claude reviews and recommends the best one
+3. Claude reads each image inline and recommends the best one (images appear in the conversation)
 4. Claude processes and saves it
 5. Generate PDF to verify
 
