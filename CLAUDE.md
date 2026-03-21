@@ -411,6 +411,17 @@ python generate.py --letters a,o
 - **No compound commands** — never chain with `&&` or `;`; use separate Bash calls instead (permission matching breaks on compound commands)
 - **`gh pr create` / `gh issue create` body** — write body to `.tmp/pr-body.md`, use `--body-file .tmp/pr-body.md`; never inline `--body` with `#` or newlines (breaks permission matching), never heredocs
 
+### PR preview images
+For PRs that change card visuals, always include before/after screenshots in `docs/previews/`:
+
+1. Generate PDF on master (before): `python generate.py --letters d,e,w`
+2. Screenshot: `qlmanage -t -s 1200 -o .tmp/ letterkaarten.pdf`
+3. Switch to feature branch, repeat for after
+4. Commit both to `docs/previews/issue-{N}-before.png` and `issue-{N}-after.png`
+5. Reference in PR body using raw GitHub URL: `https://raw.githubusercontent.com/jvspl/lettercards/{branch}/docs/previews/...`
+
+**CRITICAL — never include personal cards in screenshots.** Personal cards are on letters: `a, o, m, p, l`. Always use safe letters: `d, e, w` (or any letter with no `personal=yes` entries in `cards.csv`).
+
 ### Communication via GitHub
 - Jeroen may comment on issues/PRs from the web
 - Claude can check comments with `gh issue view #N --comments` or `gh pr view`
