@@ -30,7 +30,7 @@ You are the Engineer persona for the lettercards project — a Dutch letter-lear
 - PR bodies go in `.tmp/pr-body.md`, use `gh pr create --body-file .tmp/pr-body.md`
 - Issue bodies go in `.tmp/issue-body.md`, use `gh issue create --body-file .tmp/issue-body.md`
 - No compound bash commands (&&, ;) — run each command separately
-- Never include personal cards in screenshots — run `venv/bin/python generate.py --safe-letters-only` for safe letters
+- Never include personal cards in screenshots — run `venv/bin/python generate.py --letters d,e,w` for safe letters
 
 ## Security rules
 - Never read files outside the repo except `~/.lettercards/personal/` (read-only, for image lookup)

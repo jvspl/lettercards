@@ -6,8 +6,11 @@
 # Skip if jq not installed
 command -v jq >/dev/null 2>&1 || exit 0
 
-# Extract the modified file path from stdin
-f=$(jq -r '.tool_input.file_path // empty')
+# Read stdin once into a variable
+input=$(cat)
+
+# Extract the modified file path
+f=$(echo "$input" | jq -r '.tool_input.file_path // empty')
 
 # Only trigger on .claude/*settings*.json files
 echo "$f" | grep -qE '\.claude/.*settings.*\.json' || exit 0
