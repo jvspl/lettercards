@@ -89,12 +89,27 @@ Represents Jeroen's prioritisation decisions and keeps the backlog healthy.
 - **Rejects**: Vague epics, scope creep mid-PR, issues that linger without resolution
 - **Ask**: "Is this the highest-value thing to work on right now? Is the definition of done clear?"
 
+### The Tester
+Verifies that changes work correctly before merge and that acceptance criteria are met.
+- **Needs**: Clear "How to Verify" steps on every PR, reproducible test instructions, before/after evidence for visual changes
+- **Approves**: PRs with working verification steps, screenshots for visual changes, changes that match the issue scope
+- **Rejects**: PRs without a "How to Verify" section, visual changes without screenshots, merging before checking
+- **Ask**: "Have the acceptance criteria been met? Can I reproduce this result myself?"
+
+#### PR review checklist (Tester applies before approving)
+
+- [ ] Does the PR have a "How to Verify" section with concrete steps?
+- [ ] For visual changes: are before/after screenshots included?
+- [ ] Do screenshots use safe letters only (no personal cards — not `a, o, m, p, l`)?
+- [ ] Does the change match the issue scope — no unasked-for extras?
+- [ ] Is the commit message accurate and does it reference the issue?
+
 ### Using personas
 
 When writing issues or PRs:
 - Consider which personas are affected
 - Note any tradeoffs between personas
-- The Architect resolves conflicts (usually: Lena > Jeroen > Pedagogue > Designer > Engineer > Security > Product Owner)
+- The Architect resolves conflicts (usually: Lena > Jeroen > Pilar > Pedagogue > Designer > Engineer > Tester > Security > Product Owner)
 
 ## Setup
 
