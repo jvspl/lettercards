@@ -485,12 +485,13 @@ All GitHub comments, PR descriptions, and issue bodies written by Claude **must 
 - **`gh pr create` / `gh issue create` body** — write body to `.tmp/pr-body.md`, use `--body-file .tmp/pr-body.md`; never inline `--body` with `#` or newlines (breaks permission matching), never heredocs
 
 ### PR preview images
-For PRs that change card visuals, always include before/after screenshots in the PR body.
+For PRs that change card visuals, always include before/after screenshots in `docs/previews/`:
 
 1. Generate PDF on master (before): `python generate.py --safe-letters-only`
 2. Screenshot: `qlmanage -t -s 1200 -o .tmp/ letterkaarten.pdf`
 3. Switch to feature branch, repeat for after
-4. Attach both images directly in the PR body (drag-and-drop on GitHub)
+4. Commit both to `docs/previews/issue-{N}-before.png` and `issue-{N}-after.png`
+5. Reference in PR body using raw GitHub URL: `https://raw.githubusercontent.com/jvspl/lettercards/{branch}/docs/previews/...`
 
 **CRITICAL — never include personal cards in screenshots.** Use `python generate.py --safe-letters-only` to automatically filter to only letters with no `personal=yes` entries in `cards.csv`. This is dynamic — it updates automatically as the word list grows.
 
