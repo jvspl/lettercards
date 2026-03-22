@@ -8,8 +8,9 @@
 #   cat ... >> .claude/settings.json           (append redirect)
 #   tee .claude/settings.local.json            (tee)
 #   sed -i ... .claude/settings.local.json     (in-place edit)
-#   cp src.json .claude/settings.local.json    (copy to target)
-#   mv /tmp/x.json .claude/settings.json       (move to target)
+#   cp src.json .claude/settings.local.json          (copy to relative target)
+#   cp /tmp/x.json /abs/path/.claude/settings.json   (copy to absolute target, #84)
+#   mv /tmp/x.json .claude/settings.json             (move to target)
 #
 # Does NOT match commands that merely mention a settings path in a string
 # (e.g. git commit messages, grep searches, cat reads).
@@ -25,7 +26,7 @@ cmd=$(echo "$input" | jq -r '.tool_input.command // empty')
 
 # Only match when a settings file is the TARGET of a write operation.
 # Patterns: redirect (>/>>), tee, sed -i, cp/mv with settings as destination.
-if ! echo "$cmd" | grep -qE '(>>?\s*["\x27]?\.claude/[^"'"'"' ]*settings[^"'"'"' ]*\.json|tee\s+["\x27]?\.claude/[^"'"'"' ]*settings[^"'"'"' ]*\.json|sed\s+-i\s+.*\.claude/.*settings.*\.json|(cp|mv)\b.*\s+["\x27]?\.claude/[^"'"'"' ]*settings[^"'"'"' ]*\.json)'; then
+if ! echo "$cmd" | grep -qE '(>>?\s*["\x27]?\.claude/[^"'"'"' ]*settings[^"'"'"' ]*\.json|tee\s+["\x27]?\.claude/[^"'"'"' ]*settings[^"'"'"' ]*\.json|sed\s+-i\s+.*\.claude/.*settings.*\.json|(cp|mv)\b.*\s+["\x27]?[^ ]*\.claude/[^"'"'"' ]*settings[^"'"'"' ]*\.json)'; then
   exit 0
 fi
 
