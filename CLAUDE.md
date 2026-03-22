@@ -417,6 +417,16 @@ old one. Update the old one's status. Never edit the body of an accepted ADR.
 6. Create PR referencing the issue (e.g., "Fixes #3")
 7. Wait for review/approval, then merge — issue auto-closes
 
+### PR scope discipline
+
+Before making any change, orient yourself: run `gh pr list` and check `git branch`. Then decide:
+
+- **Same scope as the open PR?** Add the commit to the current branch and update the PR description to reflect all changes.
+- **Different topic?** Switch to master, create a new branch, open a new PR (and issue if non-trivial).
+- **Unsure?** Ask Jeroen — pausing is always better than silently bloating a PR.
+
+Never let commits accumulate on a branch without a matching PR description. Never use an open PR as a catch-all for unrelated changes.
+
 ### Automated tests
 
 ```bash
