@@ -502,7 +502,7 @@ All GitHub comments, PR descriptions, and issue bodies written by Claude **must 
 ### PR preview images
 For PRs that change card visuals, always include before/after screenshots in `docs/previews/`:
 
-1. Generate PDF on master (before): `python generate.py --letters d,e,w`
+1. Generate PDF on master (before): `python generate.py --safe-letters-only`
 2. Screenshot: `qlmanage -t -s 1200 -o .tmp/ letterkaarten.pdf`
 3. Switch to feature branch, repeat for after
 4. Commit both to `docs/previews/issue-{N}-before.png` and `issue-{N}-after.png`
