@@ -410,11 +410,22 @@ old one. Update the old one's status. Never edit the body of an accepted ADR.
 
 ### Making changes
 1. Pick an issue from the backlog
-2. Create a feature branch: `git checkout -b issue-3-letter-i`
-3. Make changes, test with `python generate.py`
-4. Run automated tests: `venv/bin/pytest tests/` and `bash tests/test_hooks.sh`
-5. Create PR referencing the issue (e.g., "Fixes #3")
-6. Wait for review/approval, then merge — issue auto-closes
+2. Switch to master and pull: `git checkout master` then `git pull`
+3. Create a feature branch: `git checkout -b issue-3-letter-i`
+4. Make changes, test with `python generate.py`
+5. Run automated tests: `venv/bin/pytest tests/` and `bash tests/test_hooks.sh`
+6. Create PR referencing the issue (e.g., "Fixes #3")
+7. Wait for review/approval, then merge — issue auto-closes
+
+### PR scope discipline
+
+Before making any change, orient yourself: run `gh pr list` and check `git branch`. Then decide:
+
+- **Same scope as the open PR?** Add the commit to the current branch and update the PR description to reflect all changes.
+- **Different topic?** Switch to master, create a new branch, open a new PR (and issue if non-trivial).
+- **Unsure?** Ask Jeroen — pausing is always better than silently bloating a PR.
+
+Never let commits accumulate on a branch without a matching PR description. Never use an open PR as a catch-all for unrelated changes.
 
 ### Automated tests
 
@@ -482,7 +493,10 @@ All GitHub comments, PR descriptions, and issue bodies written by Claude **must 
 
 ### Shell command conventions
 - **No compound commands** — never chain with `&&` or `;`; use separate Bash calls instead (permission matching breaks on compound commands)
+- **No `cd` prefixes** — NEVER prefix Bash commands with `cd /path &&`. The working directory is already the repo root. `cd /path && git status` does NOT match `Bash(git status:*)` in the allowlist and will prompt the user unnecessarily. Just run `git status` directly.
+- **No `cat` for writing files** — use the Write tool instead of `cat > file` or heredocs
 - **`gh pr create` / `gh issue create` body** — write body to `.tmp/pr-body.md`, use `--body-file .tmp/pr-body.md`; never inline `--body` with `#` or newlines (breaks permission matching), never heredocs
+- **Clean up `.tmp/` files** — after using any `.tmp/` file (PR body, issue comment, etc.), delete it with `rm` immediately after the `gh` or `git` command that used it
 
 ### PR preview images
 For PRs that change card visuals, always include before/after screenshots in `docs/previews/`:
