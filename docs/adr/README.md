@@ -72,3 +72,4 @@ Do not edit the body of the old ADR. The old reasoning should remain readable as
 |-----|-------|--------|
 | [001](001-persona-orchestration.md) | Persona orchestration via Claude Code subagents | Accepted |
 | [002](002-testing-strategy.md) | Three-tier testing strategy (pytest + hook pipe-tests + manual visual + CI) | Proposed |
+| [003](003-security-hook-architecture.md) | Security hook architecture (three-layer defence + session-start trust filter) | Proposed |

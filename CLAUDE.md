@@ -400,6 +400,7 @@ old one. Update the old one's status. Never edit the body of an accepted ADR.
 |-----|-------|--------|
 | [001](docs/adr/001-persona-orchestration.md) | Persona orchestration via Claude Code subagents | Accepted |
 | [002](docs/adr/002-testing-strategy.md) | Three-tier testing strategy (pytest + hook pipe-tests + manual + CI) | Proposed |
+| [003](docs/adr/003-security-hook-architecture.md) | Security hook architecture (three-layer defence + session-start trust filter) | Proposed |
 
 ## Workflow
 
