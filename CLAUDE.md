@@ -410,11 +410,12 @@ old one. Update the old one's status. Never edit the body of an accepted ADR.
 
 ### Making changes
 1. Pick an issue from the backlog
-2. Create a feature branch: `git checkout -b issue-3-letter-i`
-3. Make changes, test with `python generate.py`
-4. Run automated tests: `venv/bin/pytest tests/` and `bash tests/test_hooks.sh`
-5. Create PR referencing the issue (e.g., "Fixes #3")
-6. Wait for review/approval, then merge — issue auto-closes
+2. Switch to master and pull: `git checkout master` then `git pull`
+3. Create a feature branch: `git checkout -b issue-3-letter-i`
+4. Make changes, test with `python generate.py`
+5. Run automated tests: `venv/bin/pytest tests/` and `bash tests/test_hooks.sh`
+6. Create PR referencing the issue (e.g., "Fixes #3")
+7. Wait for review/approval, then merge — issue auto-closes
 
 ### Automated tests
 
