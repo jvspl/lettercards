@@ -486,6 +486,7 @@ All GitHub comments, PR descriptions, and issue bodies written by Claude **must 
 - **No `cd` prefixes** — NEVER prefix Bash commands with `cd /path &&`. The working directory is already the repo root. `cd /path && git status` does NOT match `Bash(git status:*)` in the allowlist and will prompt the user unnecessarily. Just run `git status` directly.
 - **No `cat` for writing files** — use the Write tool instead of `cat > file` or heredocs
 - **`gh pr create` / `gh issue create` body** — write body to `.tmp/pr-body.md`, use `--body-file .tmp/pr-body.md`; never inline `--body` with `#` or newlines (breaks permission matching), never heredocs
+- **Clean up `.tmp/` files** — after using any `.tmp/` file (PR body, issue comment, etc.), delete it with `rm` immediately after the `gh` or `git` command that used it
 
 ### PR preview images
 For PRs that change card visuals, always include before/after screenshots in `docs/previews/`:
