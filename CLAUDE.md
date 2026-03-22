@@ -487,6 +487,11 @@ All GitHub comments, PR descriptions, and issue bodies written by Claude **must 
 ### PR preview images
 For PRs that change card visuals, always include before/after screenshots in the PR body.
 
+1. Generate PDF on master (before): `python generate.py --safe-letters-only`
+2. Screenshot: `qlmanage -t -s 1200 -o .tmp/ letterkaarten.pdf`
+3. Switch to feature branch, repeat for after
+4. Attach both images directly in the PR body (drag-and-drop on GitHub)
+
 **CRITICAL — never include personal cards in screenshots.** Use `python generate.py --safe-letters-only` to automatically filter to only letters with no `personal=yes` entries in `cards.csv`. This is dynamic — it updates automatically as the word list grows.
 
 ### Communication via GitHub
