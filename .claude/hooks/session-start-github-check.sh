@@ -4,13 +4,28 @@
 # anything updated in the last 7 days as a session context message.
 
 command -v gh >/dev/null 2>&1 || exit 0
-command -v jq >/dev/null 2>&1 || exit 0
+
+# Warn loudly if jq is missing rather than silently skipping (#82)
+if ! command -v jq >/dev/null 2>&1; then
+  printf '{"systemMessage":"⚠️ jq is not installed — session-start security checks disabled. External GitHub comments will NOT be flagged as untrusted. Install jq to restore this guard: brew install jq"}'
+  exit 0
+fi
 
 # Fetch open PRs
-prs=$(gh pr list --state open --json number,title,updatedAt 2>/dev/null)
+# LETTERCARDS_TEST_PR_JSON: inject pre-formed JSON in tests instead of calling gh (#83)
+if [ -n "$LETTERCARDS_TEST_PR_JSON" ]; then
+  prs="$LETTERCARDS_TEST_PR_JSON"
+else
+  prs=$(gh pr list --state open --json number,title,updatedAt 2>/dev/null)
+fi
 
 # Fetch open issues updated in last 7 days (limit 20 for speed)
-issues=$(gh issue list --state open --json number,title,updatedAt,comments --limit 20 2>/dev/null)
+# LETTERCARDS_TEST_ISSUES_JSON: inject pre-formed JSON in tests instead of calling gh (#83)
+if [ -n "$LETTERCARDS_TEST_ISSUES_JSON" ]; then
+  issues="$LETTERCARDS_TEST_ISSUES_JSON"
+else
+  issues=$(gh issue list --state open --json number,title,updatedAt,comments --limit 20 2>/dev/null)
+fi
 
 # Build summary of open PRs
 pr_summary=$(echo "$prs" | jq -r '.[] | "  PR #\(.number): \(.title)"' 2>/dev/null)

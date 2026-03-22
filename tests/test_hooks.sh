@@ -88,9 +88,16 @@ H2="$HOOKS_DIR/check-settings-change.sh"
 
 out=$(write_payload ".claude/settings.local.json" '{}' | bash "$H2")
 assert_contains     "Advisory: Write to settings.local.json" 'systemMessage' "$out"
+assert_not_contains "Advisory must not show hard-block marker" '"continue": false' "$out"
 
 out=$(write_payload ".claude/settings.json" '{}' | bash "$H2")
 assert_contains     "Advisory: Write to settings.json" 'systemMessage' "$out"
+
+out=$(write_payload ".claude/settings.local.json" '{"permissions":{"defaultMode":"bypassPermissions"}}' | bash "$H2")
+assert_contains     "Loud warning: bypassPermissions written to settings file" 'bypassPermissions was just written' "$out"
+
+out=$(edit_payload ".claude/settings.local.json" '"bypassPermissions": true' | bash "$H2")
+assert_contains     "Loud warning: bypassPermissions in Edit new_string" 'bypassPermissions was just written' "$out"
 
 out=$(write_payload "generate.py" 'code' | bash "$H2")
 assert_silent       "Silent: Write to non-settings file" "$out"
@@ -126,10 +133,16 @@ out=$(bash_payload "sed -i 's/x/y/' .claude/settings.local.json" | bash "$H3")
 assert_contains     "Advisory: sed -i on settings.local.json" 'systemMessage' "$out"
 
 out=$(bash_payload 'cp /tmp/x.json .claude/settings.local.json' | bash "$H3")
-assert_contains     "Advisory: cp to settings.local.json" 'systemMessage' "$out"
+assert_contains     "Advisory: cp to relative settings.local.json" 'systemMessage' "$out"
 
 out=$(bash_payload 'mv /tmp/x.json .claude/settings.json' | bash "$H3")
-assert_contains     "Advisory: mv to settings.json" 'systemMessage' "$out"
+assert_contains     "Advisory: mv to relative settings.json" 'systemMessage' "$out"
+
+out=$(bash_payload 'cp /tmp/x.json /Users/jeroen/lettercards/.claude/settings.local.json' | bash "$H3")
+assert_contains     "Advisory: cp to absolute-path settings.local.json (#84)" 'systemMessage' "$out"
+
+out=$(bash_payload 'mv /tmp/x.json /abs/path/.claude/settings.json' | bash "$H3")
+assert_contains     "Advisory: mv to absolute-path settings.json (#84)" 'systemMessage' "$out"
 
 out=$(bash_payload 'cat .claude/settings.json' | bash "$H3")
 assert_silent       "Silent: cat (read only)" "$out"
@@ -151,14 +164,60 @@ assert_silent       "Silent: payload with no command field" "$out"
 
 # ────────────────────────────────────────────────────────────────────────────
 echo ""
+echo "=== session-start-github-check.sh (SessionStart) ==="
+H4="$HOOKS_DIR/session-start-github-check.sh"
+
+OWNER_ISSUES=$(jq -n '[{
+  "number": 1, "title": "Test issue",
+  "comments": [{"author": {"login": "jvspl"}, "body": "Owner comment here"}]
+}]')
+
+EXTERNAL_ISSUES=$(jq -n '[{
+  "number": 2, "title": "Another issue",
+  "comments": [{"author": {"login": "badactor"}, "body": "External comment here"}]
+}]')
+
+MIXED_ISSUES=$(jq -n '[{
+  "number": 3, "title": "Mixed issue",
+  "comments": [
+    {"author": {"login": "jvspl"}, "body": "Trusted comment"},
+    {"author": {"login": "attacker"}, "body": "Untrusted comment"}
+  ]
+}]')
+
+out=$(LETTERCARDS_TEST_ISSUES_JSON="$OWNER_ISSUES" LETTERCARDS_TEST_PR_JSON='[]' bash "$H4")
+assert_contains     "Session-start: owner comment shown without warning" '💬 @jvspl' "$out"
+assert_not_contains "Session-start: owner comment not flagged as external" '⚠️ external comment' "$out"
+
+out=$(LETTERCARDS_TEST_ISSUES_JSON="$EXTERNAL_ISSUES" LETTERCARDS_TEST_PR_JSON='[]' bash "$H4")
+assert_contains     "Session-start: external comment flagged with warning" '⚠️ external comment from @badactor' "$out"
+assert_not_contains "Session-start: external comment not shown as owner" '💬 @badactor' "$out"
+
+out=$(LETTERCARDS_TEST_ISSUES_JSON="$MIXED_ISSUES" LETTERCARDS_TEST_PR_JSON='[]' bash "$H4")
+assert_contains     "Session-start: trusted comment shown in mixed issue" '💬 @jvspl' "$out"
+assert_contains     "Session-start: untrusted comment flagged in mixed issue" '⚠️ external comment from @attacker' "$out"
+
+out=$(LETTERCARDS_TEST_ISSUES_JSON='[]' LETTERCARDS_TEST_PR_JSON='[]' bash "$H4")
+assert_contains     "Session-start: no-comment state produces header" 'Session start' "$out"
+assert_not_contains "Session-start: no spurious warnings on empty issues" '⚠️ external comment' "$out"
+
+# ────────────────────────────────────────────────────────────────────────────
+echo ""
 echo "=== jq-missing: fail-closed behaviour ==="
-# session-start-github-check.sh is excluded: it calls gh live and cannot be pipe-tested.
 
 out=$(write_payload ".claude/settings.local.json" '{}' | env PATH=/nonexistent /bin/bash "$H1")
 assert_contains "H1 (prewrite): hard-blocks when jq is missing" '"continue": false' "$out"
 
 out=$(bash_payload 'echo {} > .claude/settings.local.json' | env PATH=/nonexistent /bin/bash "$H3")
 assert_contains "H3 (bash-write): hard-blocks when jq is missing" '"continue": false' "$out"
+
+# H4 jq-missing: hook checks gh first, so we need a mock gh in PATH but no jq
+MOCK_BIN=$(mktemp -d)
+printf '#!/bin/bash\nexit 0\n' > "$MOCK_BIN/gh"
+chmod +x "$MOCK_BIN/gh"
+out=$(LETTERCARDS_TEST_ISSUES_JSON='[]' LETTERCARDS_TEST_PR_JSON='[]' env PATH="$MOCK_BIN" /bin/bash "$H4")
+rm -rf "$MOCK_BIN"
+assert_contains "H4 (session-start): warns when jq is missing (#82)" '⚠️ jq is not installed' "$out"
 
 # ────────────────────────────────────────────────────────────────────────────
 echo ""
