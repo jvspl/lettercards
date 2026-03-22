@@ -482,6 +482,8 @@ All GitHub comments, PR descriptions, and issue bodies written by Claude **must 
 
 ### Shell command conventions
 - **No compound commands** — never chain with `&&` or `;`; use separate Bash calls instead (permission matching breaks on compound commands)
+- **No `cd` prefixes** — NEVER prefix Bash commands with `cd /path &&`. The working directory is already the repo root. `cd /path && git status` does NOT match `Bash(git status:*)` in the allowlist and will prompt the user unnecessarily. Just run `git status` directly.
+- **No `cat` for writing files** — use the Write tool instead of `cat > file` or heredocs
 - **`gh pr create` / `gh issue create` body** — write body to `.tmp/pr-body.md`, use `--body-file .tmp/pr-body.md`; never inline `--body` with `#` or newlines (breaks permission matching), never heredocs
 
 ### PR preview images
