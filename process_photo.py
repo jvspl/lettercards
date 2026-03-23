@@ -17,9 +17,10 @@ The output folder is:  ~/.lettercards/personal/
 
 import argparse
 import os
+import subprocess
 import sys
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageOps
 
 # ── Configuration ──────────────────────────────────────────────────────
 
@@ -153,6 +154,99 @@ def process_image(source_path, output_size=DEFAULT_SIZE):
     return resized
 
 
+def auto_enhance(img):
+    """Mild automatic enhancement: auto-contrast + slight sharpness boost."""
+    img = ImageOps.autocontrast(img, cutoff=2)
+    img = ImageEnhance.Sharpness(img).enhance(1.3)
+    return img
+
+
+def make_comparison_grid(entries, cell_size=280, cols=3):
+    """
+    entries: list of (number_label, filename_label, PIL Image)
+    Returns a single PIL Image grid.
+    """
+    label_h = 38
+    pad = 6
+    cell_w = cell_size + pad * 2
+    cell_h = cell_size + label_h + pad * 2
+    rows = (len(entries) + cols - 1) // cols
+
+    bg = (245, 242, 235)
+    grid = Image.new('RGB', (cols * cell_w, rows * cell_h), bg)
+    draw = ImageDraw.Draw(grid)
+
+    try:
+        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 13)
+        font_num = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 18)
+    except Exception:
+        font = font_num = ImageFont.load_default()
+
+    for i, (num_label, file_label, thumb) in enumerate(entries):
+        col = i % cols
+        row = i // cols
+        x = col * cell_w + pad
+        y = row * cell_h + pad
+
+        # Photo
+        grid.paste(thumb.resize((cell_size, cell_size), Image.LANCZOS), (x, y))
+
+        # Number badge top-left
+        draw.rectangle([x, y, x + 28, y + 26], fill=(220, 100, 40))
+        draw.text((x + 5, y + 4), num_label, fill=(255, 255, 255), font=font_num)
+
+        # Filename label below
+        label_y = y + cell_size + 4
+        short = file_label if len(file_label) <= 36 else file_label[:33] + '...'
+        draw.text((x + 4, label_y), short, fill=(80, 70, 60), font=font)
+
+        # Border
+        draw.rectangle([x, y, x + cell_size, y + cell_size], outline=(200, 195, 185))
+
+    return grid
+
+
+def compare_photos(person_name, cell_size=280, cols=3):
+    """Process all staging images for comparison and open a grid."""
+    staging, _ = get_dirs()
+
+    if not staging.exists():
+        print(f"Staging folder not found: {staging}")
+        sys.exit(1)
+
+    images = [f for f in sorted(staging.iterdir()) if f.suffix.lower() in SUPPORTED_FORMATS]
+    if not images:
+        print("No images in staging folder.")
+        sys.exit(1)
+
+    print(f"Comparing {len(images)} candidate(s) for '{person_name}'...\n")
+
+    entries = []
+    for i, source in enumerate(images, 1):
+        try:
+            cropped = process_image(source)
+            enhanced = auto_enhance(cropped.copy())
+            entries.append((str(i), source.name, enhanced))
+            print(f"  {i}. {source.name}")
+        except Exception as e:
+            print(f"  Skipping {source.name}: {e}")
+
+    if not entries:
+        print("No images could be processed.")
+        sys.exit(1)
+
+    grid = make_comparison_grid(entries, cell_size=cell_size, cols=cols)
+    out_path = Path('/tmp') / f"compare-{person_name}.png"
+    grid.save(out_path)
+
+    print(f"\nGrid saved: {out_path}")
+    subprocess.run(['open', str(out_path)])
+
+    print(f"\nPick a number and run:")
+    for i, (_, fname, _) in enumerate(entries, 1):
+        print(f"  {i}. python process_photo.py {person_name} \"{fname}\" --force")
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Process personal photos for letter cards",
@@ -179,6 +273,15 @@ Examples:
     if args.list:
         list_staging()
         return 0
+
+    # Compare mode: python process_photo.py compare NAME
+    if args.name == 'compare':
+        if not args.source:
+            print("Usage: python process_photo.py compare <name>")
+            print("Example: python process_photo.py compare tata")
+            sys.exit(1)
+        compare_photos(args.source)
+        return
 
     # Need a name to process
     if not args.name:
