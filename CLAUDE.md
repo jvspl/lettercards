@@ -387,6 +387,8 @@ All images use a cream/beige background for consistency.
 
 ## Architecture decisions
 
+The target architecture is documented in [`docs/architecture.md`](docs/architecture.md). It defines the three-layer design (engine / user deck / conversational interface), the deck protocol (`deck.csv` + `deck-state.json`), and the four-phase migration path. Read this before working on any structural change.
+
 Significant decisions are recorded as ADRs in `docs/adr/`. See `docs/adr/README.md` for how to
 read, write, and supersede them.
 
