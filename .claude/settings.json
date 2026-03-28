@@ -43,6 +43,16 @@
             "statusMessage": "Checking for settings file changes..."
           }
         ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/auto-review-on-pr-create.sh",
+            "statusMessage": "Checking if PR was just created..."
+          }
+        ]
       }
     ]
   }

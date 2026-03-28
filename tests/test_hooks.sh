@@ -212,6 +212,31 @@ assert_not_contains "Session-start: non-draft PR has no [DRAFT] label" '\[DRAFT\
 
 # ────────────────────────────────────────────────────────────────────────────
 echo ""
+echo "=== auto-review-on-pr-create.sh (PostToolUse Bash) ==="
+H5="$HOOKS_DIR/auto-review-on-pr-create.sh"
+
+pr_payload() {
+  jq -n --arg cmd "$1" --arg out "$2" --argjson ec "${3:-0}" \
+    '{"tool_input":{"command":$cmd},"tool_response":{"output":$out,"exit_code":$ec}}'
+}
+
+out=$(pr_payload "gh pr create --title 'Test' --body-file .tmp/body.md" \
+  "https://github.com/jvspl/lettercards/pull/42" 0 | bash "$H5")
+assert_contains     "PR create: systemMessage includes PR number" 'PR #42' "$out"
+assert_contains     "PR create: tells Claude to review" 'review' "$out"
+
+out=$(pr_payload "gh pr create --title 'Test'" \
+  "https://github.com/jvspl/lettercards/pull/42" 1 | bash "$H5")
+assert_silent       "PR create failed (exit_code=1): silent" "$out"
+
+out=$(pr_payload "gh issue list" "some output" 0 | bash "$H5")
+assert_silent       "Non-PR-create command: silent" "$out"
+
+out=$(pr_payload "gh pr create --title 'Test'" "error: authentication required" 0 | bash "$H5")
+assert_silent       "PR create: no URL in output: silent" "$out"
+
+# ────────────────────────────────────────────────────────────────────────────
+echo ""
 echo "=== jq-missing: fail-closed behaviour ==="
 
 out=$(write_payload ".claude/settings.local.json" '{}' | env PATH=/nonexistent /bin/bash "$H1")
