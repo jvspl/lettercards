@@ -52,12 +52,14 @@ git pull
 git checkout -b issue-{N}-short-name
 venv/bin/pytest tests/
 bash tests/test_hooks.sh
-gh pr create --body-file .tmp/pr-body.md   # then: rm .tmp/pr-body.md
+gh pr create --draft --body-file .tmp/pr-body.md   # then: rm .tmp/pr-body.md
 ```
 
 **Tests:** Run both suites before every PR touching `generate.py`, `process_photo.py`, or `.claude/hooks/`. For visual changes also run `python generate.py --letters d,e,w --safe-letters-only` and inspect the PDF.
 
 **PR scope:** Check `gh pr list` + `git branch` before starting. Same topic → same branch. Different topic → new branch + new PR. Unsure → ask Jeroen.
+
+**Draft PRs:** Always open PRs as drafts. Ask Jeroen for confirmation before running `gh pr ready` — this triggers the automated review and signals the PR is ready to merge.
 
 **No direct pushes to master.** All changes via PR with at least one approval. Never `--amend` on published commits — make new commits.
 

@@ -222,15 +222,26 @@ pr_payload() {
 
 out=$(pr_payload "gh pr create --title 'Test' --body-file .tmp/body.md" \
   "https://github.com/jvspl/lettercards/pull/42" 0 | bash "$H5")
-assert_contains     "PR create: systemMessage includes PR number" 'PR #42' "$out"
-assert_contains     "PR create: tells Claude to review" 'review' "$out"
+assert_contains     "PR create (no draft): fires review" 'PR #42' "$out"
+
+out=$(pr_payload "gh pr create --draft --title 'Test' --body-file .tmp/body.md" \
+  "https://github.com/jvspl/lettercards/pull/42" 0 | bash "$H5")
+assert_silent       "PR create --draft: silent" "$out"
+
+out=$(pr_payload "gh pr ready 99" \
+  "✓ Pull request #99 is marked as ready for review" 0 | bash "$H5")
+assert_contains     "gh pr ready with number: fires review" 'PR #99' "$out"
+
+out=$(pr_payload "gh pr ready" \
+  "https://github.com/jvspl/lettercards/pull/55 marked ready" 0 | bash "$H5")
+assert_contains     "gh pr ready without number: falls back to URL" 'PR #55' "$out"
 
 out=$(pr_payload "gh pr create --title 'Test'" \
   "https://github.com/jvspl/lettercards/pull/42" 1 | bash "$H5")
 assert_silent       "PR create failed (exit_code=1): silent" "$out"
 
 out=$(pr_payload "gh issue list" "some output" 0 | bash "$H5")
-assert_silent       "Non-PR-create command: silent" "$out"
+assert_silent       "Non-PR command: silent" "$out"
 
 out=$(pr_payload "gh pr create --title 'Test'" "error: authentication required" 0 | bash "$H5")
 assert_silent       "PR create: no URL in output: silent" "$out"

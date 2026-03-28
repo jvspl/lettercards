@@ -1,27 +1,38 @@
 #!/bin/bash
 # Hook: PostToolUse Bash
-# When gh pr create succeeds, instruct Claude to run a full PR review
-# and post the findings as a comment on the PR.
+# Triggers a PR review at the right moment:
+#   - gh pr create (no --draft): fires immediately
+#   - gh pr create --draft:      silent — PR isn't ready yet
+#   - gh pr ready:               fires — author has signalled done
 
 command -v jq >/dev/null 2>&1 || exit 0
 
 payload=$(cat)
-
-# Only act on gh pr create commands
 cmd=$(echo "$payload" | jq -r '.tool_input.command // empty')
-echo "$cmd" | grep -q 'gh pr create' || exit 0
-
-# Only act if the command succeeded
+output=$(echo "$payload" | jq -r '.tool_response.output // empty')
 exit_code=$(echo "$payload" | jq -r '.tool_response.exit_code // 1')
+
 [ "$exit_code" = "0" ] || exit 0
 
-# Extract PR number from URL in output
-# gh pr create prints: https://github.com/owner/repo/pull/123
-output=$(echo "$payload" | jq -r '.tool_response.output // empty')
-pr_number=$(echo "$output" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)
+pr_number=""
+
+if echo "$cmd" | grep -q 'gh pr create'; then
+  # Skip draft PRs — review will fire when gh pr ready is called
+  echo "$cmd" | grep -q -- '--draft' && exit 0
+  # Extract PR number from the URL gh pr create prints
+  pr_number=$(echo "$output" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)
+
+elif echo "$cmd" | grep -q 'gh pr ready'; then
+  # Try the PR number from the command first (gh pr ready 108)
+  pr_number=$(echo "$cmd" | grep -oE '\b[0-9]+\b' | head -1)
+  # Fall back to the URL in the output if no number in command
+  if [ -z "$pr_number" ]; then
+    pr_number=$(echo "$output" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)
+  fi
+fi
 
 [ -n "$pr_number" ] || exit 0
 
-msg="PR #${pr_number} was just created. Run a full review following the /pr-review checklist and post the complete findings as a comment on PR #${pr_number} using gh pr comment, signed — 🤖 Claude."
+msg="PR #${pr_number} is ready for review. Run a full review following the /pr-review checklist and post the complete findings as a comment on PR #${pr_number} using gh pr comment, signed — 🤖 Claude."
 
 printf '{"systemMessage":"%s"}' "$(echo "$msg" | sed 's/"/\\"/g')"
