@@ -30,11 +30,13 @@ Read `docs/architecture.md` to understand the project's intended direction and p
 
 ## Refine issues before recommending them
 
-Before suggesting an issue as "next up", check whether it's actually ready to pick up. A ready issue has: a clear problem statement, acceptance criteria that tell you when it's done, and no unanswered questions that would block implementation. If an issue is missing any of these, refine it first:
+Before suggesting an issue as "next up", check whether it's actually ready to pick up. A ready issue has: a clear problem statement, acceptance criteria that tell you when it's done, and no unanswered questions that would block implementation.
 
-- Post a comment on the issue with the improved body (sign with `— 🤖 Claude`)
-- For vague or ambiguous issues, post a comment asking the project lead the specific question that needs answering before work can start
-- For issues that need a decision from the project lead (design tradeoffs, scope questions, prioritisation calls), post a comment framing the question clearly — don't make those decisions yourself
+Two situations:
+
+**You can improve it yourself** (spelling out implicit acceptance criteria, clarifying scope based on existing context): post a comment with the suggested revised description, clearly marked as a suggestion. Sign with `— 🤖 Claude`. Wait for the project lead to confirm or modify — only then edit the issue body itself.
+
+**It needs a decision from the project lead** (design tradeoffs, scope questions, prioritisation calls): post a comment framing the specific question that needs answering. Don't make those decisions yourself. Mark it blocked until answered.
 
 The goal: every issue in the "recommended next" list should be ready to pick up immediately, with no open questions.
 
