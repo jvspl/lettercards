@@ -1,53 +1,43 @@
-# /pr-review — Review a pull request before merging
+---
+description: Review a pull request — check scope, correctness, test coverage, documentation, and safety before merging. Use when asked to review a PR, check if something is ready to merge, or apply a pre-merge review. Optionally pass a PR number: /pr-review 42
+---
 
-Apply the full PR review checklist. Pass an optional PR number: `/pr-review 107`
+# PR Review
 
-## Steps
+The goal of a review is to answer one question: **is merging this PR safe and does it do what it claims?**
 
-1. Identify the PR to review:
-   - If `$ARGUMENTS` is a number, review that PR
-   - Otherwise, list open PRs and ask which to review (or review all if only one is open)
+A good review has a clear verdict. Don't leave the author guessing.
 
-2. Fetch the PR with comments:
-   ```bash
-   gh pr view $PR_NUMBER --comments
-   ```
+## Fetch the PR
 
-3. Read the changed files:
-   ```bash
-   gh pr diff $PR_NUMBER
-   ```
+```bash
+gh pr view $ARGUMENTS --comments   # or list open PRs if no number given
+gh pr diff $ARGUMENTS
+```
 
-## Checklist (Tester persona)
+Read the linked issue if there is one — you need to know what the PR was supposed to do to judge whether it did it.
 
-Work through each item and report pass / fail / not-applicable:
+## Four things to check
 
-- [ ] **How to Verify** — does the PR have a concrete "How to Verify" section with runnable steps?
-- [ ] **Visual changes** — if card layout, colors, or fonts changed: are before/after screenshots included?
-- [ ] **Safe screenshots** — were personal card letters excluded? Should use `--safe-letters-only` or `--letters d,e,w`
-- [ ] **Scope** — does the PR do what the linked issue asked, and nothing more?
-- [ ] **Commit message** — accurate, references the issue number, doesn't use `--amend` on published commits?
-- [ ] **Tests** — does the PR include or update tests for new logic? Run `venv/bin/pytest tests/` mentally against the diff.
-- [ ] **CLAUDE.md / docs** — if behavior changed, is documentation updated?
+**1. Scope.** Does the PR do what the linked issue asked, and only that? Extra changes — even good ones — belong in separate PRs. They make reviews harder, obscure intent, and create merge risk. If the PR has scope creep, name it specifically.
 
-## Security lens
+**2. Verifiability.** Can someone else reproduce the expected outcome from what's written in the PR description? A "How to Verify" section with runnable steps is the bar. If the change is visual, before/after evidence belongs here too.
 
-- Does the change touch `.claude/settings.json`, `.claude/hooks/`, or permission-related code?
-  - If yes: apply the security checklist from CLAUDE.md (necessity, scope, bypassPermissions check, data exposure)
-- Does the change affect personal photo handling or `~/.lettercards/` paths?
-- Does the change commit or expose any personal images?
+**3. Safety.** Ask: could this PR expose private data, weaken security boundaries, or break something that's currently working?
+- Changes to settings files, hooks, or permissions need extra scrutiny — apply the security checklist in CLAUDE.md
+- Changes involving personal data paths (photos, private files) should never move that data into version control
+- Test the blast radius: what breaks if this is wrong?
 
-## Designer lens (visual changes only)
-
-- Does the card layout still fit 9 per A4?
-- Are colors consistent with the `LETTER_COLORS` palette?
-- Is the first letter visually distinct from the rest of the word?
+**4. Completeness.** Does the code that changed have tests for the new logic? Is the documentation updated to match? Is the commit message accurate?
 
 ## Verdict
 
-End with one of:
-- **Approve** — all checklist items pass
-- **Request changes** — list specific items that need fixing
-- **Needs discussion** — something is unclear or out of scope
+Choose one and state it clearly:
 
-If requesting changes: post a comment on the PR explaining what needs to change (sign with `— 🤖 Claude`).
+- **Approve** — safe to merge as-is
+- **Request changes** — specific things must change before merging (list them)
+- **Needs discussion** — something is ambiguous or out of scope that the author should clarify
+
+If requesting changes, post a comment on the PR naming each required change. Sign with `— 🤖 Claude`.
+
+Don't approve if you have doubts you haven't surfaced. It's better to request changes than to let something questionable slip through quietly.
