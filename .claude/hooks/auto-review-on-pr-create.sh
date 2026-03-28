@@ -27,11 +27,11 @@ if echo "$cmd" | grep -q 'gh pr create'; then
   pr_number=$(echo "$output" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)
 
 elif echo "$cmd" | grep -q 'gh pr ready'; then
-  # Try the PR number from the command first (gh pr ready 108)
-  pr_number=$(echo "$cmd" | grep -oE '\b[0-9]+\b' | head -1)
-  # Fall back to the URL in the output if no number in command
+  # Use the output URL first — most authoritative (what gh actually resolved)
+  pr_number=$(echo "$output" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)
+  # Fall back to command: skip flags, take the last pure-numeric token (gh pr ready 108)
   if [ -z "$pr_number" ]; then
-    pr_number=$(echo "$output" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)
+    pr_number=$(echo "$cmd" | tr ' ' '\n' | grep -v '^-' | grep -oE '^[0-9]+$' | tail -1)
   fi
 fi
 

@@ -229,8 +229,20 @@ out=$(pr_payload "gh pr create --draft --title 'Test' --body-file .tmp/body.md" 
 assert_silent       "PR create --draft: silent" "$out"
 
 out=$(pr_payload "gh pr ready 99" \
+  "https://github.com/jvspl/lettercards/pull/99" 0 | bash "$H5")
+assert_contains     "gh pr ready with number: URL takes priority" 'PR #99' "$out"
+
+out=$(pr_payload "gh pr ready --timeout 30 99" \
+  "https://github.com/jvspl/lettercards/pull/99" 0 | bash "$H5")
+assert_contains     "gh pr ready with flags before number: URL takes priority" 'PR #99' "$out"
+
+out=$(pr_payload "gh pr ready 99" \
   "✓ Pull request #99 is marked as ready for review" 0 | bash "$H5")
-assert_contains     "gh pr ready with number: fires review" 'PR #99' "$out"
+assert_contains     "gh pr ready: no URL in output, falls back to command" 'PR #99' "$out"
+
+out=$(pr_payload "gh pr ready --timeout 30 99" \
+  "✓ Pull request marked as ready" 0 | bash "$H5")
+assert_contains     "gh pr ready: flags before number, no URL, takes last numeric token" 'PR #99' "$out"
 
 out=$(pr_payload "gh pr ready" \
   "https://github.com/jvspl/lettercards/pull/55 marked ready" 0 | bash "$H5")
