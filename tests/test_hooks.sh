@@ -7,6 +7,7 @@
 # on stdout content. No Claude Code required — pure bash + jq.
 
 HOOKS_DIR=".claude/hooks"
+TEST_OPERATOR="jvspl"   # GitHub username of the operator — injected wherever hooks call gh api user
 PASS=0
 FAIL=0
 
@@ -185,28 +186,28 @@ MIXED_ISSUES=$(jq -n '[{
   ]
 }]')
 
-out=$(LETTERCARDS_TEST_ISSUES_JSON="$OWNER_ISSUES" LETTERCARDS_TEST_PR_JSON='[]' bash "$H4")
+out=$(LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_ISSUES_JSON="$OWNER_ISSUES" LETTERCARDS_TEST_PR_JSON='[]' bash "$H4")
 assert_contains     "Session-start: owner comment shown without warning" '💬 @jvspl' "$out"
 assert_not_contains "Session-start: owner comment not flagged as external" '⚠️ external comment' "$out"
 
-out=$(LETTERCARDS_TEST_ISSUES_JSON="$EXTERNAL_ISSUES" LETTERCARDS_TEST_PR_JSON='[]' bash "$H4")
+out=$(LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_ISSUES_JSON="$EXTERNAL_ISSUES" LETTERCARDS_TEST_PR_JSON='[]' bash "$H4")
 assert_contains     "Session-start: external comment flagged with warning" '⚠️ external comment from @badactor' "$out"
 assert_not_contains "Session-start: external comment not shown as owner" '💬 @badactor' "$out"
 
-out=$(LETTERCARDS_TEST_ISSUES_JSON="$MIXED_ISSUES" LETTERCARDS_TEST_PR_JSON='[]' bash "$H4")
+out=$(LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_ISSUES_JSON="$MIXED_ISSUES" LETTERCARDS_TEST_PR_JSON='[]' bash "$H4")
 assert_contains     "Session-start: trusted comment shown in mixed issue" '💬 @jvspl' "$out"
 assert_contains     "Session-start: untrusted comment flagged in mixed issue" '⚠️ external comment from @attacker' "$out"
 
-out=$(LETTERCARDS_TEST_ISSUES_JSON='[]' LETTERCARDS_TEST_PR_JSON='[]' bash "$H4")
+out=$(LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_ISSUES_JSON='[]' LETTERCARDS_TEST_PR_JSON='[]' bash "$H4")
 assert_contains     "Session-start: no-comment state produces header" 'Session start' "$out"
 assert_not_contains "Session-start: no spurious warnings on empty issues" '⚠️ external comment' "$out"
 
 DRAFT_PR=$(jq -n '[{"number": 10, "title": "Work in progress", "isDraft": true, "updatedAt": "2026-01-01T00:00:00Z"}]')
-out=$(LETTERCARDS_TEST_ISSUES_JSON='[]' LETTERCARDS_TEST_PR_JSON="$DRAFT_PR" bash "$H4")
+out=$(LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_ISSUES_JSON='[]' LETTERCARDS_TEST_PR_JSON="$DRAFT_PR" bash "$H4")
 assert_contains     "Session-start: draft PR shows [DRAFT] label" 'PR #10 \[DRAFT\]' "$out"
 
 NONDRAFT_PR=$(jq -n '[{"number": 11, "title": "Ready PR", "isDraft": false, "updatedAt": "2026-01-01T00:00:00Z"}]')
-out=$(LETTERCARDS_TEST_ISSUES_JSON='[]' LETTERCARDS_TEST_PR_JSON="$NONDRAFT_PR" bash "$H4")
+out=$(LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_ISSUES_JSON='[]' LETTERCARDS_TEST_PR_JSON="$NONDRAFT_PR" bash "$H4")
 assert_contains     "Session-start: non-draft PR has no [DRAFT] label" 'PR #11:' "$out"
 assert_not_contains "Session-start: non-draft PR has no [DRAFT] label" '\[DRAFT\]' "$out"
 
@@ -275,28 +276,28 @@ NO_REVIEW_PR=$(jq -n '[{"number":79,"comments":[]}]')
 PUSH_OUT="To https://github.com/jvspl/lettercards.git
    abc1234..def5678  issue-77-fix -> issue-77-fix"
 
-out=$(push_payload "git push" "$PUSH_OUT" 0 | LETTERCARDS_TEST_PUSH_PR_JSON="$OPEN_REVIEW_PR" bash "$H6")
+out=$(push_payload "git push" "$PUSH_OUT" 0 | LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_PUSH_PR_JSON="$OPEN_REVIEW_PR" bash "$H6")
 assert_contains     "Push with 🔄 review: fires re-review reminder" 'PR #77' "$out"
 
 out=$(push_payload "git push" "To https://github.com/jvspl/lettercards.git
-   abc1234..def5678  issue-78-fix -> issue-78-fix" 0 | LETTERCARDS_TEST_PUSH_PR_JSON="$CLEAN_REVIEW_PR" bash "$H6")
+   abc1234..def5678  issue-78-fix -> issue-78-fix" 0 | LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_PUSH_PR_JSON="$CLEAN_REVIEW_PR" bash "$H6")
 assert_silent       "Push with ✅ review: silent" "$out"
 
 out=$(push_payload "git push" "To https://github.com/jvspl/lettercards.git
-   abc1234..def5678  issue-79-fix -> issue-79-fix" 0 | LETTERCARDS_TEST_PUSH_PR_JSON="$NO_REVIEW_PR" bash "$H6")
+   abc1234..def5678  issue-79-fix -> issue-79-fix" 0 | LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_PUSH_PR_JSON="$NO_REVIEW_PR" bash "$H6")
 assert_silent       "Push with no review comment: silent" "$out"
 
 out=$(push_payload "git push origin master" "To https://github.com/jvspl/lettercards.git
-   abc1234..def5678  master -> master" 0 | LETTERCARDS_TEST_PUSH_PR_JSON="$OPEN_REVIEW_PR" bash "$H6")
+   abc1234..def5678  master -> master" 0 | LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_PUSH_PR_JSON="$OPEN_REVIEW_PR" bash "$H6")
 assert_silent       "Push to master: silent" "$out"
 
-out=$(push_payload "git push" "$PUSH_OUT" 1 | LETTERCARDS_TEST_PUSH_PR_JSON="$OPEN_REVIEW_PR" bash "$H6")
+out=$(push_payload "git push" "$PUSH_OUT" 1 | LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_PUSH_PR_JSON="$OPEN_REVIEW_PR" bash "$H6")
 assert_silent       "Failed push: silent" "$out"
 
-out=$(push_payload "git push" "$PUSH_OUT" 0 | LETTERCARDS_TEST_PUSH_PR_JSON='[]' bash "$H6")
+out=$(push_payload "git push" "$PUSH_OUT" 0 | LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_PUSH_PR_JSON='[]' bash "$H6")
 assert_silent       "Push with no open PR: silent" "$out"
 
-out=$(push_payload "gh pr create --title x" "https://github.com/jvspl/lettercards/pull/1" 0 | LETTERCARDS_TEST_PUSH_PR_JSON="$OPEN_REVIEW_PR" bash "$H6")
+out=$(push_payload "gh pr create --title x" "https://github.com/jvspl/lettercards/pull/1" 0 | LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_PUSH_PR_JSON="$OPEN_REVIEW_PR" bash "$H6")
 assert_silent       "Non-push command: silent" "$out"
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -313,7 +314,7 @@ assert_contains "H3 (bash-write): hard-blocks when jq is missing" '"continue": f
 MOCK_BIN=$(mktemp -d)
 printf '#!/bin/bash\nexit 0\n' > "$MOCK_BIN/gh"
 chmod +x "$MOCK_BIN/gh"
-out=$(LETTERCARDS_TEST_ISSUES_JSON='[]' LETTERCARDS_TEST_PR_JSON='[]' env PATH="$MOCK_BIN" /bin/bash "$H4")
+out=$(LETTERCARDS_TEST_OPERATOR="$TEST_OPERATOR" LETTERCARDS_TEST_ISSUES_JSON='[]' LETTERCARDS_TEST_PR_JSON='[]' env PATH="$MOCK_BIN" /bin/bash "$H4")
 rm -rf "$MOCK_BIN"
 assert_contains "H4 (session-start): warns when jq is missing (#82)" '⚠️ jq is not installed' "$out"
 
