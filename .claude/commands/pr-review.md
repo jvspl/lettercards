@@ -108,7 +108,7 @@ State this at the top, before the findings:
 
 - ✅ **Approve** — safe to merge as-is
 - ✅ **Approve with comments** — merge-ready, but with observations the author should see
-- 🔄 **Request changes** — one or more must-fix blockers; list them and post a comment on the PR signed `— 🤖 Claude`
+- 🔄 **Request changes** — one or more must-fix blockers; list them, post a comment on the PR signed `— 🤖 Claude`, and explicitly tell Jeroen you will proactively offer a re-review once the findings are addressed
 - ❓ **Needs discussion** — scope or design question needs resolution before review can complete
 - 📦 **Too large** — name the distinct concerns; suggest how to split
 

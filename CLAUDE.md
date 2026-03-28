@@ -61,7 +61,7 @@ gh pr create --draft --body-file .tmp/pr-body.md   # then: rm .tmp/pr-body.md
 
 **Draft PRs:** Always open PRs as drafts. Ask Jeroen for confirmation before running `gh pr ready` — this triggers the automated review and signals the PR is ready to merge.
 
-**Re-review:** After addressing any review finding — code fix, PR description update, or any other change — proactively ask Jeroen if a re-review should be run. Do not wait to be asked. Run `/pr-review N` — the skill detects the existing review and switches to re-review mode automatically.
+**Re-review:** After addressing any review finding — code fix, PR description update, or any other change — ask Jeroen if a re-review should be run. At natural stopping points when all known findings are addressed and no obvious work remains, offer `/pr-review N` or just run it. Do not wait to be asked or for a push to trigger the hook.
 
 **No direct pushes to master.** All changes via PR with at least one approval. Never `--amend` on published commits — make new commits.
 
