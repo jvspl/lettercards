@@ -201,6 +201,15 @@ out=$(LETTERCARDS_TEST_ISSUES_JSON='[]' LETTERCARDS_TEST_PR_JSON='[]' bash "$H4"
 assert_contains     "Session-start: no-comment state produces header" 'Session start' "$out"
 assert_not_contains "Session-start: no spurious warnings on empty issues" '⚠️ external comment' "$out"
 
+DRAFT_PR=$(jq -n '[{"number": 10, "title": "Work in progress", "isDraft": true, "updatedAt": "2026-01-01T00:00:00Z"}]')
+out=$(LETTERCARDS_TEST_ISSUES_JSON='[]' LETTERCARDS_TEST_PR_JSON="$DRAFT_PR" bash "$H4")
+assert_contains     "Session-start: draft PR shows [DRAFT] label" 'PR #10 \[DRAFT\]' "$out"
+
+NONDRAFT_PR=$(jq -n '[{"number": 11, "title": "Ready PR", "isDraft": false, "updatedAt": "2026-01-01T00:00:00Z"}]')
+out=$(LETTERCARDS_TEST_ISSUES_JSON='[]' LETTERCARDS_TEST_PR_JSON="$NONDRAFT_PR" bash "$H4")
+assert_contains     "Session-start: non-draft PR has no [DRAFT] label" 'PR #11:' "$out"
+assert_not_contains "Session-start: non-draft PR has no [DRAFT] label" '\[DRAFT\]' "$out"
+
 # ────────────────────────────────────────────────────────────────────────────
 echo ""
 echo "=== jq-missing: fail-closed behaviour ==="
