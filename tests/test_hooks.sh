@@ -260,6 +260,47 @@ assert_silent       "PR create: no URL in output: silent" "$out"
 
 # ────────────────────────────────────────────────────────────────────────────
 echo ""
+echo "=== auto-rereview-on-push.sh (PostToolUse Bash) ==="
+H6="$HOOKS_DIR/auto-rereview-on-push.sh"
+
+push_payload() {
+  jq -n --arg cmd "$1" --arg out "$2" --argjson ec "${3:-0}" \
+    '{"tool_input":{"command":$cmd},"tool_response":{"output":$out,"exit_code":$ec}}'
+}
+
+OPEN_REVIEW_PR=$(jq -n '[{"number":77,"comments":[{"author":{"login":"jvspl"},"body":"**Verdict: 🔄 Request changes**\n— 🤖 Claude"}]}]')
+CLEAN_REVIEW_PR=$(jq -n '[{"number":78,"comments":[{"author":{"login":"jvspl"},"body":"**Verdict: ✅ Approve**\n— 🤖 Claude"}]}]')
+NO_REVIEW_PR=$(jq -n '[{"number":79,"comments":[]}]')
+
+PUSH_OUT="To https://github.com/jvspl/lettercards.git
+   abc1234..def5678  issue-77-fix -> issue-77-fix"
+
+out=$(push_payload "git push" "$PUSH_OUT" 0 | LETTERCARDS_TEST_PUSH_PR_JSON="$OPEN_REVIEW_PR" bash "$H6")
+assert_contains     "Push with 🔄 review: fires re-review reminder" 'PR #77' "$out"
+
+out=$(push_payload "git push" "To https://github.com/jvspl/lettercards.git
+   abc1234..def5678  issue-78-fix -> issue-78-fix" 0 | LETTERCARDS_TEST_PUSH_PR_JSON="$CLEAN_REVIEW_PR" bash "$H6")
+assert_silent       "Push with ✅ review: silent" "$out"
+
+out=$(push_payload "git push" "To https://github.com/jvspl/lettercards.git
+   abc1234..def5678  issue-79-fix -> issue-79-fix" 0 | LETTERCARDS_TEST_PUSH_PR_JSON="$NO_REVIEW_PR" bash "$H6")
+assert_silent       "Push with no review comment: silent" "$out"
+
+out=$(push_payload "git push origin master" "To https://github.com/jvspl/lettercards.git
+   abc1234..def5678  master -> master" 0 | LETTERCARDS_TEST_PUSH_PR_JSON="$OPEN_REVIEW_PR" bash "$H6")
+assert_silent       "Push to master: silent" "$out"
+
+out=$(push_payload "git push" "$PUSH_OUT" 1 | LETTERCARDS_TEST_PUSH_PR_JSON="$OPEN_REVIEW_PR" bash "$H6")
+assert_silent       "Failed push: silent" "$out"
+
+out=$(push_payload "git push" "$PUSH_OUT" 0 | LETTERCARDS_TEST_PUSH_PR_JSON='[]' bash "$H6")
+assert_silent       "Push with no open PR: silent" "$out"
+
+out=$(push_payload "gh pr create --title x" "https://github.com/jvspl/lettercards/pull/1" 0 | LETTERCARDS_TEST_PUSH_PR_JSON="$OPEN_REVIEW_PR" bash "$H6")
+assert_silent       "Non-push command: silent" "$out"
+
+# ────────────────────────────────────────────────────────────────────────────
+echo ""
 echo "=== jq-missing: fail-closed behaviour ==="
 
 out=$(write_payload ".claude/settings.local.json" '{}' | env PATH=/nonexistent /bin/bash "$H1")

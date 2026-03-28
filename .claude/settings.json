@@ -51,6 +51,11 @@
             "type": "command",
             "command": "bash .claude/hooks/auto-review-on-pr-create.sh",
             "statusMessage": "Checking if PR was just created..."
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/auto-rereview-on-push.sh",
+            "statusMessage": "Checking for outstanding PR review findings..."
           }
         ]
       }
