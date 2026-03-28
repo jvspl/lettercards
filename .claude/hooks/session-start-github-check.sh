@@ -11,12 +11,15 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 0
 fi
 
+operator="${LETTERCARDS_TEST_OPERATOR:-$(gh api user --jq '.login' 2>/dev/null)}"
+[ -n "$operator" ] || exit 0
+
 # Fetch open PRs
 # LETTERCARDS_TEST_PR_JSON: inject pre-formed JSON in tests instead of calling gh (#83)
 if [ -n "$LETTERCARDS_TEST_PR_JSON" ]; then
   prs="$LETTERCARDS_TEST_PR_JSON"
 else
-  prs=$(gh pr list --state open --json number,title,updatedAt 2>/dev/null)
+  prs=$(gh pr list --state open --json number,title,isDraft,updatedAt 2>/dev/null)
 fi
 
 # Fetch open issues updated in last 7 days (limit 20 for speed)
@@ -28,14 +31,14 @@ else
 fi
 
 # Build summary of open PRs
-pr_summary=$(echo "$prs" | jq -r '.[] | "  PR #\(.number): \(.title)"' 2>/dev/null)
+pr_summary=$(echo "$prs" | jq -r '.[] | "  PR #\(.number)\(if (.isDraft // false) then " [DRAFT]" else "" end): \(.title)"' 2>/dev/null)
 
-# Build summary of issues with comments, flagging non-jvspl authors
-issues_with_comments=$(echo "$issues" | jq -r '
+# Build summary of issues with comments, flagging non-operator authors
+issues_with_comments=$(echo "$issues" | jq -r --arg op "$operator" '
   .[] | select(.comments | length > 0) |
   "  #\(.number): \(.title)",
   (.comments[] |
-    if .author.login == "jvspl"
+    if .author.login == $op
     then "    💬 @\(.author.login): \(.body | split("\n")[0] | .[0:100])"
     else "    ⚠️ external comment from @\(.author.login): \(.body | split("\n")[0] | .[0:100])"
     end
@@ -54,4 +57,4 @@ if [ -n "$issues_with_comments" ]; then
   msg="$msg\n\nIssues with comments (may have new activity):\n$issues_with_comments"
 fi
 
-printf '{"systemMessage":"%s"}' "$(echo -e "$msg" | sed 's/"/\\"/g')"
+jq -n --arg msg "$(echo -e "$msg")" '{"systemMessage":$msg}'
