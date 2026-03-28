@@ -43,9 +43,9 @@ If `$ARGUMENTS` is set (e.g. `/backlog security` or `/backlog phase-1`), filter 
 
 When ranking what to work on next:
 
-1. **Security issues** — jump the queue regardless of anything else
-2. **Blocking work** — issues other issues depend on
-3. **Explicitly prioritised** — `priority:high` label; reflects a conscious human call that overrides algorithmic ordering
+1. **High-severity security issues** — data exposure, privacy risk, or active vulnerability; jump the queue. Low-severity security issues (missing tests, minor hardening) follow normal phase order.
+2. **Explicitly prioritised** — `priority:high` label; reflects a conscious human call that overrides algorithmic ordering
+3. **Blocking work** — issues other issues depend on
 4. **Quick wins** — small scope, high signal, resolves something real (`quick-win` label or evident from the body)
 5. **Phase order** — earlier phase before later phase; within a phase, dependencies before dependents
 
