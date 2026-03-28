@@ -1,59 +1,90 @@
 ---
-description: Groom the GitHub issue backlog. Use this when the user asks what to work on next, wants to review or clean up the backlog, asks about project state, or needs help prioritizing. Also useful after a batch of work to close out completed issues.
+description: Groom the GitHub issue backlog — find what's done but not closed, what's blocked, what needs refinement, and what to work on next. Use this when the user asks what to work on, says "what should we tackle", "I have two hours what's most valuable", "let's figure out what's next", wants to clean up after a batch of work, or needs to prioritise. Accepts an optional focus area: /backlog security, /backlog phase-1.
 ---
 
 # Backlog Grooming
 
 A healthy backlog has one property: you can look at it and immediately know what to do next. Your job is to get it there.
 
-## Gather the data
+## Understand the project direction first
 
-Fetch everything in one pass — never loop over individual issues:
+Before touching the issue list, understand where the project is heading. Look for architecture, roadmap, or planning documents in `docs/`, and check `CLAUDE.md` for phase structure and priorities. This is your priority lens — an issue that *unblocks* Phase 2 work is more important than one that *is* Phase 2 work. Skip this and your recommendations will be blind.
+
+## Fetch the data
+
+Everything in one pass — never loop over individual issues:
 
 ```bash
 gh issue list --state open --json number,title,body,labels,comments --limit 100
 gh issue list --state closed --json number,title,labels,closedAt --limit 20
-gh pr list --state open --json number,title,body,labels,comments
+gh pr list --state open --json number,title,body,labels,comments,isDraft
 ```
 
-Read `docs/architecture.md` to understand the project's intended direction and phases. This is the lens through which you judge priority — an issue that blocks Phase 2 work matters more than one that is Phase 2 work.
+## Focus filter
+
+If `$ARGUMENTS` is set (e.g. `/backlog security` or `/backlog phase-1`), filter the entire analysis through that lens — issues, gaps, recommendations, everything. Omit sections that have no relevant content in the focused view.
 
 ## What to look for
 
-**Done but still open.** Recent merged PRs often resolve issues that are still listed as open. Cross-reference the PR list against open issues — if the work shipped, the issue should close. Post a comment explaining what shipped and flag it for the owner's sign-off. Never close issues yourself.
+**Done but still open.** Cross-reference recent closed PRs against open issues. If work shipped that resolves an issue, flag it for closure — post a comment explaining what shipped and wait for the project lead's sign-off. Never close issues yourself.
 
-**Blocked or stale.** Issues marked `needs-input` or `discussion` are not actionable without a decision. Surface them explicitly: what is the open question? Who needs to answer it? Sometimes the right action is to close them rather than let them accumulate.
+**Blocked — but distinguish the type, because they need different responses:**
+- *Needs a decision from the project lead* — frame the specific question in a comment and wait. The blocker is a choice only the project lead can make.
+- *Needs design discussion* — note what needs to be resolved and what the options are. This isn't a quick answer; it's a conversation.
+- *Externally blocked* — waiting on something outside the project. Note what it is and whether there's a path forward without it.
 
-**Missing work.** Read the architecture doc and ask: is there work that clearly needs to happen that has no issue? If so, say so — it's better to name the gap than to pretend the backlog is complete.
+**Stale.** Issues untouched for months that no longer reflect the project's direction. These should be explicitly surfaced — sometimes the right call is to close them outright rather than carry dead weight indefinitely.
 
-**Scope creep in flight.** Open PRs that have grown beyond their linked issue slow everything down. Flag them.
+**Scope creep in flight.** Open PRs that have grown beyond their linked issue. Post a comment identifying the out-of-scope changes and suggest they move to a new issue. Bloated PRs are a review and merge risk.
+
+**Gaps.** Based on the architecture/roadmap, are there phases, features, or deliverables with no issue? Name the gap — a backlog that looks complete but isn't is worse than one that honestly shows what's missing.
+
+## Priority framework
+
+When ranking what to work on next:
+
+1. **Security issues** — jump the queue regardless of anything else
+2. **Blocking work** — issues other issues depend on
+3. **Explicitly prioritised** — `priority:high` label; reflects a conscious human call that overrides algorithmic ordering
+4. **Quick wins** — small scope, high signal, resolves something real (`quick-win` label or evident from the body)
+5. **Phase order** — earlier phase before later phase; within a phase, dependencies before dependents
 
 ## Refine issues before recommending them
 
-Before suggesting an issue as "next up", check whether it's actually ready to pick up. A ready issue has: a clear problem statement, acceptance criteria that tell you when it's done, and no unanswered questions that would block implementation.
+A ready issue has a clear problem statement, acceptance criteria that define done, and no unanswered questions that would block implementation. Before putting an issue in the recommended list, check it passes this bar.
 
-Two situations:
+**If you can improve it yourself** (filling in missing acceptance criteria, making implicit scope explicit based on available context): post a comment using this exact template, then wait for confirmation before editing the issue body:
 
-**You can improve it yourself** (spelling out implicit acceptance criteria, clarifying scope based on existing context): post a comment with the suggested revised description, clearly marked as a suggestion. Sign with `— 🤖 Claude`. Wait for the project lead to confirm or modify — only then edit the issue body itself.
+```
+💡 **Suggested refinement** — please confirm or adjust before I update the issue.
 
-**It needs a decision from the project lead** (design tradeoffs, scope questions, prioritisation calls): post a comment framing the specific question that needs answering. Don't make those decisions yourself. Mark it blocked until answered.
+[proposed revised description]
 
-The goal: every issue in the "recommended next" list should be ready to pick up immediately, with no open questions.
+— 🤖 Claude
+```
 
-## Suggest the next 2–3 things to work on
+**If it needs a decision from the project lead** (design tradeoffs, scope choices, architecture calls): post a comment framing the specific question. Don't make those decisions yourself.
 
-A good recommendation has three properties:
-1. It has a clear definition of done (you know when it's finished)
-2. It unblocks other work (prefer dependencies over dependents)
-3. It matches the current project phase (don't skip ahead)
+After grooming, update labels to reflect current state — remove `needs-input` once a question is answered, add `quick-win` if scope turns out to be small, update `discussion` to `needs-input` once the design question is clear enough to become a decision. Labels are only useful if they stay accurate.
 
-Explain *why* each item is the right next thing, not just that it's high priority.
+## Session-fit signal
 
-## Output structure
+For each item in the recommended list, add a rough signal based on scope:
+- **One session** — clear scope, completable in a focused sitting
+- **Multi-session** — larger work; consider whether it should be split before starting
 
-1. **State in one sentence**: open issues, in-flight PRs, current phase
-2. **Ready to close**: each with a one-line reason
-3. **Blocked / needs decision**: each with the specific open question (post a comment on the issue)
-4. **Refined this session**: issues you improved or asked a question on
-5. **Recommended next**: 2–3 items in order, with reasoning — these should be ready to pick up now
-6. **Gaps**: work that should exist but doesn't
+This isn't a time estimate. It's a judgment call that helps the project lead decide what to start when.
+
+## Output
+
+Only include sections that have content — an empty section is noise. Lead with state, end with recommendations and gaps.
+
+**State:** one sentence — open issues, in-flight PRs, current project phase.
+
+Then only what applies:
+- **Ready to close** — each with a one-line reason; post a comment on each before listing here
+- **Blocked** — each with its type and the specific question or blocker
+- **Stale** — issues that should be closed or updated, with a brief reason
+- **Scope creep** — PRs with out-of-scope changes; post a comment identifying them
+- **Recommended next** — 2–3 items in priority order, each with: why it's next, one-session or multi-session signal, confirmation it's ready to pick up now
+- **Gaps** — work that should exist but doesn't, referenced against the architecture/roadmap
