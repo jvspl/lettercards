@@ -16,7 +16,7 @@ fi
 if [ -n "$LETTERCARDS_TEST_PR_JSON" ]; then
   prs="$LETTERCARDS_TEST_PR_JSON"
 else
-  prs=$(gh pr list --state open --json number,title,updatedAt 2>/dev/null)
+  prs=$(gh pr list --state open --json number,title,isDraft,updatedAt 2>/dev/null)
 fi
 
 # Fetch open issues updated in last 7 days (limit 20 for speed)
@@ -28,7 +28,7 @@ else
 fi
 
 # Build summary of open PRs
-pr_summary=$(echo "$prs" | jq -r '.[] | "  PR #\(.number): \(.title)"' 2>/dev/null)
+pr_summary=$(echo "$prs" | jq -r '.[] | "  PR #\(.number)\(if (.isDraft // false) then " [DRAFT]" else "" end): \(.title)"' 2>/dev/null)
 
 # Build summary of issues with comments, flagging non-jvspl authors
 issues_with_comments=$(echo "$issues" | jq -r '
