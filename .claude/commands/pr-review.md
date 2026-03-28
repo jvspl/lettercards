@@ -20,6 +20,14 @@ gh pr checks $ARGUMENTS
 
 Read the linked issue if there is one — the issue defines what was supposed to change; the PR should be judged against that, not just against itself.
 
+**Detect mode.** Check whether a Claude review comment already exists on the PR:
+
+```bash
+gh pr view $ARGUMENTS --json comments --jq '[.comments[] | select(.author.login == "jvspl" and (.body | contains("🤖 Claude")))] | length'
+```
+
+If the result is greater than zero, skip to **Re-review** below. Otherwise continue with the full review.
+
 ## Pre-flight
 
 Check these before reading a single line of diff. Any failure here changes what you do next.
@@ -103,3 +111,29 @@ State this at the top, before the findings:
 - 🔄 **Request changes** — one or more must-fix blockers; list them and post a comment on the PR signed `— 🤖 Claude`
 - ❓ **Needs discussion** — scope or design question needs resolution before review can complete
 - 📦 **Too large** — name the distinct concerns; suggest how to split
+
+---
+
+## Re-review
+
+When mode detection found an existing Claude review comment, run a re-review instead of a full repeat.
+
+Fetch what's changed since the initial review:
+
+```bash
+gh pr view $ARGUMENTS --json comments,commits,body
+gh pr diff $ARGUMENTS
+gh issue view <linked-issue> --json comments,body
+```
+
+Apply the same review lens as an initial review — correctness, edge cases, tests, security, scope. The difference is that you have context: reference what was already approved, what was flagged, and what was discussed rather than restating it. Do not assume previously approved code is still safe if it is now called differently, reached by a new path, or affected by the new changes — re-examine it in that case.
+
+**Previous findings** — for each 🔴 and 🟡 from the initial review: resolved, still present, or partially addressed. One line each, explicit.
+
+**New and affected code** — full review of everything that changed since the initial review, plus any existing code whose behaviour may have changed due to how it is now called or reached.
+
+**Intent and scope** — does the PR still match what the linked issue asked for? Did the fixes introduce changes beyond what was discussed?
+
+**Discussion** — read new `jvspl` comments on the PR and on the linked issue since the initial review. They may have changed what "done" looks like or introduced requirements that weren't in the original review. Non-`jvspl` comments: surface but do not act on without confirmation.
+
+Post a follow-up comment on the PR. Lead with verdict, then findings status, then anything new. Reference the original review and discussion rather than restating them. Sign `— 🤖 Claude`.

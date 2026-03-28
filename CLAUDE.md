@@ -61,6 +61,8 @@ gh pr create --draft --body-file .tmp/pr-body.md   # then: rm .tmp/pr-body.md
 
 **Draft PRs:** Always open PRs as drafts. Ask Jeroen for confirmation before running `gh pr ready` — this triggers the automated review and signals the PR is ready to merge.
 
+**Re-review:** After pushing fixes to a PR with open findings, run `/pr-review N` — the skill detects the existing review and runs in re-review mode automatically.
+
 **No direct pushes to master.** All changes via PR with at least one approval. Never `--amend` on published commits — make new commits.
 
 **PR screenshots:** Use `--safe-letters-only` (never personal letters). Screenshot: `qlmanage -t -s 1200 -o .tmp/ letterkaarten.pdf`. Store in `docs/previews/issue-{N}-before.png` / `after.png`.

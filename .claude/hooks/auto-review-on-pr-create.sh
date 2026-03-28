@@ -4,6 +4,10 @@
 #   - gh pr create (no --draft): fires immediately
 #   - gh pr create --draft:      silent — PR isn't ready yet
 #   - gh pr ready:               fires — author has signalled done
+#
+# Safety invariant: pr_number is always digits-only before it reaches the
+# systemMessage. Do not add output/cmd content to the message directly —
+# that would open a prompt injection path via GitHub API responses.
 
 command -v jq >/dev/null 2>&1 || exit 0
 
@@ -17,8 +21,8 @@ exit_code=$(echo "$payload" | jq -r '.tool_response.exit_code // 1')
 pr_number=""
 
 if echo "$cmd" | grep -q 'gh pr create'; then
-  # Skip draft PRs — review will fire when gh pr ready is called
-  echo "$cmd" | grep -q -- '--draft' && exit 0
+  # Skip draft PRs — match --draft as a standalone token, not inside quoted strings
+  echo "$cmd" | tr ' ' '\n' | grep -qx -- '--draft' && exit 0
   # Extract PR number from the URL gh pr create prints
   pr_number=$(echo "$output" | grep -oE '/pull/[0-9]+' | grep -oE '[0-9]+' | head -1)
 
@@ -33,6 +37,6 @@ fi
 
 [ -n "$pr_number" ] || exit 0
 
+# Use jq to construct JSON safely — handles quotes, newlines, and special chars
 msg="PR #${pr_number} is ready for review. Run a full review following the /pr-review checklist and post the complete findings as a comment on PR #${pr_number} using gh pr comment, signed — 🤖 Claude."
-
-printf '{"systemMessage":"%s"}' "$(echo "$msg" | sed 's/"/\\"/g')"
+jq -n --arg msg "$msg" '{"systemMessage":$msg}'
