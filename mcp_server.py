@@ -62,10 +62,11 @@ You are helping select and process personal photos for Dutch letter learning car
 
 Workflow:
 1. Call list_staging_photos() to see what photos are in the staging folder
-2. Call generate_card_preview() for each candidate — pass the file_path from the listing
-3. Assess each rendered card: face clearly visible? crop good? recognisable?
-4. Recommend the best option with brief reasoning
-5. When the user confirms, call save_photo() with that file_path
+2. Call generate_card_preview() for each photo to review them all
+3. Pick your top 2–4 candidates based on face visibility and crop quality
+4. Call generate_comparison() with those top picks — this shows them side-by-side
+5. Recommend the best one with brief reasoning
+6. When the user confirms, call save_photo() with that file_path
 
 Photos must be on disk in the staging folder (~/.lettercards/staging/).
 Do NOT ask the user to upload photos inline — that does not work with these tools.
@@ -217,6 +218,41 @@ def generate_card_preview(name: str, file_path: str) -> MCPImage:
     photo = decode_and_process(image_data)
     card  = render_card(photo, name)
     return pil_to_mcp_image(card)
+
+
+@mcp.tool()
+def generate_comparison(name: str, file_paths: list[str]) -> MCPImage:
+    """
+    Render multiple photos as cards side-by-side for easy comparison.
+    Call this with your top 2–4 candidates after reviewing all previews.
+    Returns a single image showing all cards next to each other.
+
+    Args:
+        name: Person's name as it should appear on each card
+        file_paths: List of absolute paths to the candidate photos
+    """
+    cards = []
+    for fp in file_paths:
+        image_data = base64.b64encode(Path(fp).read_bytes()).decode()
+        photo = decode_and_process(image_data)
+        cards.append(render_card(photo, name))
+
+    pad = 12
+    total_w = sum(c.width for c in cards) + pad * (len(cards) + 1)
+    total_h = max(c.height for c in cards) + pad * 2
+
+    grid = Image.new('RGB', (total_w, total_h), (230, 228, 215))
+    x = pad
+    for card in cards:
+        # Strip alpha before pasting
+        if card.mode == 'RGBA':
+            bg = Image.new('RGB', card.size, (230, 228, 215))
+            bg.paste(card, mask=card.split()[-1])
+            card = bg
+        grid.paste(card, (x, pad))
+        x += card.width + pad
+
+    return pil_to_mcp_image(grid)
 
 
 @mcp.tool()
