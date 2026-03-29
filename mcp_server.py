@@ -13,6 +13,7 @@ Run via: venv-mcp/bin/python mcp_server.py
 
 import base64
 import io
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -23,7 +24,11 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageOps
 # ── Paths ────────────────────────────────────────────────────────────────────
 
 REPO_DIR    = Path(__file__).parent
-PERSONAL_DIR = Path.home() / '.lettercards' / 'personal'
+PERSONAL_DIR = (
+    Path(os.environ['LETTERCARDS_PERSONAL_DIR'])
+    if 'LETTERCARDS_PERSONAL_DIR' in os.environ
+    else Path.home() / '.lettercards' / 'personal'
+)
 
 # ── Card rendering constants (matches generate.py) ──────────────────────────
 
