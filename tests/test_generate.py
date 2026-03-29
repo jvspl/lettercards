@@ -182,3 +182,82 @@ def test_image_path_no_image_field_returns_none(tmp_path):
     card = {'image': '', 'personal': 'no'}
     result = get_image_path(card, str(tmp_path), tmp_path)
     assert result is None
+
+
+# ── deck.csv new fields ───────────────────────────────────────────────────────
+
+def write_deck_csv(tmp_path, content):
+    csv_file = tmp_path / "cards.csv"
+    csv_file.write_text("letter,word,image,font,personal,status,notes,language\n" + content)
+    return csv_file
+
+
+def test_load_cards_status_defaults_to_active(tmp_path):
+    """Old-format CSV (no status column) should default status to 'active'."""
+    csv = write_csv(tmp_path, "a,appel,appel.png,,no\n")
+    cards = load_cards(csv)
+    assert cards[0]['status'] == 'active'
+
+
+def test_load_cards_language_defaults_to_nl(tmp_path):
+    """Old-format CSV (no language column) should default language to 'nl'."""
+    csv = write_csv(tmp_path, "a,appel,appel.png,,no\n")
+    cards = load_cards(csv)
+    assert cards[0]['language'] == 'nl'
+
+
+def test_load_cards_notes_defaults_to_empty(tmp_path):
+    """Old-format CSV (no notes column) should default notes to ''."""
+    csv = write_csv(tmp_path, "a,appel,appel.png,,no\n")
+    cards = load_cards(csv)
+    assert cards[0]['notes'] == ''
+
+
+def test_load_cards_reads_status_field(tmp_path):
+    csv = write_deck_csv(tmp_path, "a,appel,appel.png,,no,testing,,nl\n")
+    cards = load_cards(csv)
+    assert cards[0]['status'] == 'testing'
+
+
+def test_load_cards_reads_language_field(tmp_path):
+    csv = write_deck_csv(tmp_path, "d,deur,deur.png,,no,active,,es\n")
+    cards = load_cards(csv)
+    assert cards[0]['language'] == 'es'
+
+
+def test_load_cards_reads_notes_field(tmp_path):
+    csv = write_deck_csv(tmp_path, "d,deur,deur.png,,no,active,she says doo,nl\n")
+    cards = load_cards(csv)
+    assert cards[0]['notes'] == 'she says doo'
+
+
+def test_load_cards_skips_retired(tmp_path):
+    csv = write_deck_csv(
+        tmp_path,
+        "a,appel,appel.png,,no,active,,nl\n"
+        "d,deur,deur.png,,no,retired,,nl\n",
+    )
+    cards = load_cards(csv)
+    assert len(cards) == 1
+    assert cards[0]['word'] == 'appel'
+
+
+def test_load_cards_skips_pending(tmp_path):
+    csv = write_deck_csv(
+        tmp_path,
+        "a,appel,appel.png,,no,active,,nl\n"
+        "w,winkel,,,no,pending,,nl\n",
+    )
+    cards = load_cards(csv)
+    assert len(cards) == 1
+    assert cards[0]['word'] == 'appel'
+
+
+def test_load_cards_includes_testing(tmp_path):
+    csv = write_deck_csv(
+        tmp_path,
+        "a,appel,appel.png,,no,testing,,nl\n",
+    )
+    cards = load_cards(csv)
+    assert len(cards) == 1
+    assert cards[0]['status'] == 'testing'
