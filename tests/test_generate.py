@@ -10,6 +10,7 @@ from generate import load_cards, get_personal_images_dir, get_safe_letters, get_
 # ── load_cards ──────────────────────────────────────────────────────────────
 
 def write_csv(tmp_path, content):
+    """Write a legacy 5-column CSV (used to verify backward compatibility)."""
     csv_file = tmp_path / "cards.csv"
     csv_file.write_text("letter,word,image,font,personal\n" + content)
     return csv_file
@@ -58,7 +59,7 @@ def test_load_cards_personal_flag(tmp_path):
 
 def test_load_cards_missing_personal_defaults_to_no(tmp_path):
     # Write CSV without personal column
-    f = tmp_path / "cards.csv"
+    f = tmp_path / "deck.csv"
     f.write_text("letter,word,image,font\na,appel,appel.png,\n")
     cards = load_cards(f)
     assert cards[0]['personal'] == 'no'
@@ -116,7 +117,7 @@ def test_safe_letters_all_safe(tmp_path):
 
 
 def test_safe_letters_missing_csv_returns_empty():
-    safe = get_safe_letters(Path('/nonexistent/cards.csv'))
+    safe = get_safe_letters(Path('/nonexistent/deck.csv'))
     assert safe == set()
 
 
@@ -187,7 +188,7 @@ def test_image_path_no_image_field_returns_none(tmp_path):
 # ── deck.csv new fields ───────────────────────────────────────────────────────
 
 def write_deck_csv(tmp_path, content):
-    csv_file = tmp_path / "cards.csv"
+    csv_file = tmp_path / "deck.csv"
     csv_file.write_text("letter,word,image,font,personal,status,notes,language\n" + content)
     return csv_file
 

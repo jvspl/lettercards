@@ -13,7 +13,7 @@
 - [ ] `images/SOURCES.md` is updated with source, license, and prompt/origin
 - [ ] Images are appropriately licensed (AI-generated, CC0, public domain, etc.)
 
-> **Note:** Personal/private images (family photos etc.) are fine but must be stored locally in `~/.lettercards/personal/`, not in the repo. These are marked `personal=yes` in cards.csv.
+> **Note:** Personal/private images (family photos etc.) are fine but must be stored locally in `~/.lettercards/personal/`, not in the repo. These are marked `personal=yes` in deck.csv.
 
 ## Test plan
 

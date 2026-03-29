@@ -43,7 +43,7 @@ except ImportError:
 
 STAGING_DIR = Path.home() / '.lettercards' / 'staging'
 IMAGES_DIR = Path(__file__).parent / 'images'
-CARDS_CSV = Path(__file__).parent / 'cards.csv'
+CARDS_CSV = Path(__file__).parent / 'deck.csv'
 SOURCES_MD = Path(__file__).parent / 'images' / 'SOURCES.md'
 
 # Style guidance for consistent illustrations

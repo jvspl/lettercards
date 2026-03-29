@@ -518,7 +518,7 @@ def main():
                         help='Output PDF filename')
     parser.add_argument('--no-placeholders', action='store_true',
                         help='Skip generating placeholder images')
-    parser.add_argument('--csv', type=str, default='cards.csv',
+    parser.add_argument('--csv', type=str, default='deck.csv',
                         help='Path to the CSV config file')
     parser.add_argument('--personal-dir', type=str, default=None,
                         help='Directory for personal photos (default: ~/.lettercards/personal/)')
