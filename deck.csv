@@ -1,0 +1,49 @@
+letter,word,image,font,personal,status,notes,language
+# Priority letters: A D E O W Z,,,,,,,
+a,appel,appel.png,,no,active,,nl
+a,auto,auto.png,,no,active,,nl
+a,abu,abu.png,,yes,active,,nl
+d,deur,deur.png,,no,active,,nl
+d,draak,draak.png,,no,active,,nl
+d,druif,druif.png,,no,active,,nl
+e,eend,eend.png,,no,active,,nl
+o,oma,oma.png,,yes,active,,nl
+o,opa,opa.png,,yes,active,,nl
+o,oog,oog.png,,no,active,,nl
+o,olifant,olifant.png,,no,active,,nl
+w,water,water.png,,no,active,,nl
+z,zon,zon.png,,no,active,,nl
+z,zebra,zebra.png,,no,active,,nl
+# Secondary letters: F K M N P S,,,,,,,
+f,fiets,fiets.png,,no,active,,nl
+k,kat,kat.png,,no,active,,nl
+k,koe,koe.png,,no,active,,nl
+m,mama,mama.png,,yes,active,,nl
+m,melk,melk.png,,no,active,,nl
+m,muis,muis.png,,no,active,,nl
+m,Mees,mees.png,,yes,active,,nl
+n,neus,neus.png,,no,active,,nl
+p,papa,papa.png,,yes,active,,nl
+p,peer,peer.png,,no,active,,nl
+s,sok,sok.png,,no,active,,nl
+s,schoen,schoen.png,,no,active,,nl
+# Other letters,,,,,,,
+b,banaan,banaan.png,,no,active,,nl
+b,beer,beer.png,,no,active,,nl
+b,bal,bal.png,,no,active,,nl
+b,boom,boom.png,,no,active,,nl
+b,bad,bad.png,,no,active,,nl
+g,geen voorbeeld,,,no,active,,nl
+h,huis,huis.png,,no,active,,nl
+h,hand,hand.png,,no,active,,nl
+i,geen voorbeeld,,,no,active,,nl
+j,jas,jas.png,,no,active,,nl
+l,leeuw,leeuw.png,,no,active,,nl
+l,Lena,lena.png,,yes,active,,nl
+l,Laura,laura.png,,yes,active,,nl
+r,regen,regen.png,,no,active,,nl
+t,tand,tand.png,,no,active,,nl
+t,tafel,tafel.png,,no,active,,nl
+t,Tata,tata.png,,yes,active,,nl
+v,vis,vis.png,,no,active,,nl
+v,vlinder,vlinder.png,,no,active,,nl

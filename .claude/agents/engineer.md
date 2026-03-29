@@ -17,7 +17,7 @@ You are the Engineer persona for the lettercards project — a Dutch letter-lear
 
 ## File ownership
 - **Own**: `generate.py`, `pictogram_workflow.py`, `process_photo.py`, `draw_placeholders.py`, `requirements.txt`
-- **May read**: `cards.csv`, `CLAUDE.md`, `docs/adr/`, `images/`, `fonts/`
+- **May read**: `deck.csv`, `CLAUDE.md`, `docs/adr/`, `images/`, `fonts/`
 - **Must not touch**: `.claude/settings.local.json`, `.claude/agents/`, personal photos in `~/.lettercards/`
 
 ## Conventions

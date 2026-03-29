@@ -398,7 +398,15 @@ def generate_placeholder_images(cards, images_dir):
 # ── Main PDF Generation ────────────────────────────────────────────
 
 def load_cards(csv_path, letters_filter=None):
-    """Load card entries from CSV."""
+    """Load card entries from CSV.
+
+    Supports both legacy format (letter,word,image,font,personal) and the
+    deck format that adds status, notes, language. Missing columns default
+    to sensible values so old CSVs keep working.
+
+    Cards with status 'retired' or 'pending' are skipped — they are not
+    printed.
+    """
     cards = []
     with open(csv_path, 'r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
@@ -412,12 +420,18 @@ def load_cards(csv_path, letters_filter=None):
                 continue
             if letters_filter and letter.lower() not in letters_filter:
                 continue
+            status = row.get('status', 'active').strip()
+            if status in ('retired', 'pending'):
+                continue
             cards.append({
                 'letter': letter.lower(),
                 'word': word,
                 'image': row.get('image', '').strip(),
                 'font': row.get('font', '').strip(),
                 'personal': row.get('personal', 'no').strip(),
+                'status': status,
+                'notes': row.get('notes', '').strip(),
+                'language': row.get('language', 'nl').strip(),
             })
     return cards
 
@@ -504,7 +518,7 @@ def main():
                         help='Output PDF filename')
     parser.add_argument('--no-placeholders', action='store_true',
                         help='Skip generating placeholder images')
-    parser.add_argument('--csv', type=str, default='cards.csv',
+    parser.add_argument('--csv', type=str, default='deck.csv',
                         help='Path to the CSV config file')
     parser.add_argument('--personal-dir', type=str, default=None,
                         help='Directory for personal photos (default: ~/.lettercards/personal/)')
