@@ -29,6 +29,11 @@ PERSONAL_DIR = (
     if 'LETTERCARDS_PERSONAL_DIR' in os.environ
     else Path.home() / '.lettercards' / 'personal'
 )
+STAGING_DIR = (
+    Path(os.environ['LETTERCARDS_STAGING_DIR'])
+    if 'LETTERCARDS_STAGING_DIR' in os.environ
+    else Path.home() / '.lettercards' / 'staging'
+)
 
 # ── Card rendering constants (matches generate.py) ──────────────────────────
 
@@ -55,11 +60,16 @@ LETTER_COLORS = {
 mcp = FastMCP("lettercards", instructions="""
 You are helping select and process personal photos for Dutch letter learning cards.
 
-When the user drops photos into the conversation:
-1. Call generate_card_preview() for each photo, passing the local file path — you'll see the actual card rendered inline
-2. Assess each card: is the face clearly visible? Is the crop good? Is it recognisable?
-3. Recommend the best option with brief reasoning
-4. When the user confirms, call save_photo() with the file path of the chosen photo
+Workflow:
+1. Call list_staging_photos() to see what photos are in the staging folder
+2. Call generate_card_preview() for each candidate — pass the file_path from the listing
+3. Assess each rendered card: face clearly visible? crop good? recognisable?
+4. Recommend the best option with brief reasoning
+5. When the user confirms, call save_photo() with that file_path
+
+Photos must be on disk in the staging folder (~/.lettercards/staging/).
+Do NOT ask the user to upload photos inline — that does not work with these tools.
+If staging is empty, tell the user to copy photos there first.
 
 The cards are for a toddler (Lena, ~2 years old) learning letter-sound associations.
 A good card photo: face clearly visible, person recognisable, clean background preferred.
@@ -172,6 +182,26 @@ def pil_to_mcp_image(img: Image.Image) -> MCPImage:
 
 
 # ── Tools ────────────────────────────────────────────────────────────────────
+
+@mcp.tool()
+def list_staging_photos() -> str:
+    """
+    List photos available in the staging folder (~/.lettercards/staging/).
+    Call this first to see what photos are available before generating previews.
+    Returns a list of file paths you can pass to generate_card_preview().
+    """
+    if not STAGING_DIR.exists():
+        return f"Staging folder does not exist: {STAGING_DIR}\nAsk the user to create it and copy photos there."
+    extensions = {'.jpg', '.jpeg', '.png', '.heic', '.webp'}
+    photos = sorted(p for p in STAGING_DIR.iterdir() if p.suffix.lower() in extensions)
+    if not photos:
+        return f"No photos found in {STAGING_DIR}\nAsk the user to copy photos there first."
+    lines = [f"Found {len(photos)} photo(s) in {STAGING_DIR}:"]
+    for p in photos:
+        size_kb = p.stat().st_size // 1024
+        lines.append(f"  {p}  ({size_kb} KB)")
+    return "\n".join(lines)
+
 
 @mcp.tool()
 def generate_card_preview(name: str, file_path: str) -> MCPImage:
