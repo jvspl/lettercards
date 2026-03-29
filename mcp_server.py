@@ -56,10 +56,10 @@ mcp = FastMCP("lettercards", instructions="""
 You are helping select and process personal photos for Dutch letter learning cards.
 
 When the user drops photos into the conversation:
-1. Call generate_card_preview() for each photo — you'll see the actual card
+1. Call generate_card_preview() for each photo, passing the local file path — you'll see the actual card rendered inline
 2. Assess each card: is the face clearly visible? Is the crop good? Is it recognisable?
 3. Recommend the best option with brief reasoning
-4. When the user confirms, call save_photo() to save it to their personal library
+4. When the user confirms, call save_photo() with the file path of the chosen photo
 
 The cards are for a toddler (Lena, ~2 years old) learning letter-sound associations.
 A good card photo: face clearly visible, person recognisable, clean background preferred.
@@ -174,30 +174,32 @@ def pil_to_mcp_image(img: Image.Image) -> MCPImage:
 # ── Tools ────────────────────────────────────────────────────────────────────
 
 @mcp.tool()
-def generate_card_preview(name: str, image_data: str) -> Image.Image:
+def generate_card_preview(name: str, file_path: str) -> MCPImage:
     """
     Process a photo and render it as an actual letter card preview.
     Call this for each candidate photo so the user can compare real cards.
 
     Args:
         name: Person's name as it should appear on the card (e.g. 'Tata', 'mama')
-        image_data: Base64-encoded image (JPEG or PNG)
+        file_path: Absolute path to the image file on disk (JPEG or PNG)
     """
+    image_data = base64.b64encode(Path(file_path).read_bytes()).decode()
     photo = decode_and_process(image_data)
     card  = render_card(photo, name)
     return pil_to_mcp_image(card)
 
 
 @mcp.tool()
-def save_photo(name: str, image_data: str) -> str:
+def save_photo(name: str, file_path: str) -> str:
     """
     Save the chosen photo to the personal library.
     Call this once the user has confirmed which photo to use.
 
     Args:
         name: Person's name — saved as {name}.png (e.g. 'tata' → tata.png)
-        image_data: Base64-encoded image of the chosen photo
+        file_path: Absolute path to the chosen image file on disk
     """
+    image_data = base64.b64encode(Path(file_path).read_bytes()).decode()
     photo = decode_and_process(image_data)
     PERSONAL_DIR.mkdir(parents=True, exist_ok=True)
     out = PERSONAL_DIR / f"{name.lower()}.png"
