@@ -79,3 +79,14 @@ def test_validate_no_warning_when_printed_cards_empty():
     state = {"deck_protocol": "1.0", "printed_cards": []}
     warnings = validate_deck_state(state, {"appel"})
     assert warnings == []
+
+
+def test_validate_returns_empty_for_none_state():
+    warnings = validate_deck_state(None, {"appel"})
+    assert warnings == []
+
+
+def test_validate_warns_when_printed_cards_not_a_list():
+    state = {"deck_protocol": "1.0", "printed_cards": "not a list"}
+    warnings = validate_deck_state(state, set())
+    assert any("not a list" in w or "corrupt" in w for w in warnings)

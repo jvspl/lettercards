@@ -34,17 +34,19 @@ def load_deck_state(path: Path) -> Optional[dict]:
         return None
 
 
-def validate_deck_state(state: dict, csv_words: set) -> list:
+def validate_deck_state(state: Optional[dict], csv_words: set) -> list:
     """
     Validate deck state against the current deck.csv word list.
 
     Args:
-        state: Parsed deck-state.json dict.
+        state: Parsed deck-state.json dict, or None if the file was missing/corrupt.
         csv_words: Set of word strings from cards.csv (all active words).
 
     Returns:
         List of warning strings. Empty list means no issues found.
     """
+    if state is None:
+        return []
     warnings = []
 
     # Check deck_protocol presence and version
@@ -61,12 +63,18 @@ def validate_deck_state(state: dict, csv_words: set) -> list:
         )
 
     # Check that all printed_cards words exist in deck.csv
-    for entry in state.get("printed_cards", []):
-        word = entry.get("word", "")
-        if word and word not in csv_words:
-            warnings.append(
-                f"printed_cards contains '{word}' which is not in cards.csv. "
-                "The card may have been removed or renamed."
-            )
+    printed_cards = state.get("printed_cards", [])
+    if not isinstance(printed_cards, list):
+        warnings.append(
+            "deck-state.json 'printed_cards' is not a list — file may be corrupt."
+        )
+    else:
+        for entry in printed_cards:
+            word = entry.get("word", "")
+            if word and word not in csv_words:
+                warnings.append(
+                    f"printed_cards contains '{word}' which is not in cards.csv. "
+                    "The card may have been removed or renamed."
+                )
 
     return warnings
