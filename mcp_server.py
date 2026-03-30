@@ -60,27 +60,38 @@ LETTER_COLORS = {
 mcp = FastMCP("lettercards", instructions="""
 You are helping select and process personal photos for Dutch letter learning cards.
 
-Workflow — follow this exactly, no skipping steps:
-1. Call list_staging_photos() to see what photos are in the staging folder
-2. Call generate_card_preview() for each photo to review them all
-3. Pick your top 3 candidates based on face visibility and crop quality
-4. ALWAYS call generate_comparison() with those 3 picks — do this automatically, never ask first
-5. After showing the comparison, recommend the best one with brief reasoning
-6. When the user confirms, call save_photo() with that file_path
+## Finding photos
 
-Step 4 is mandatory. Never describe your top picks in text without first showing the comparison grid.
+Photos can come from two places — check both:
+1. **Dropped into this conversation**: In Cowork mode, dragged files land on disk and are
+   accessible by path. Look for them in the session uploads directory or any path the user
+   mentions.
+2. **Staging folder**: Call list_staging_photos() to check ~/.lettercards/staging/.
 
-Photos must be on disk in the staging folder (~/.lettercards/staging/).
-Do NOT ask the user to upload photos inline — that does not work with these tools.
-If staging is empty, tell the user to copy photos there first.
+Use whichever has photos. If neither has any, ask the user to either drop photos in or
+copy them to the staging folder.
+
+## Workflow
+
+1. Find the photos (see above)
+2. Call generate_card_preview() for each photo
+3. Then, based on how many photos there are:
+   - **1–3 photos**: Show all card previews individually — no comparison grid needed.
+     Recommend the best one directly.
+   - **4+ photos**: Pick the top 3 candidates, then ALWAYS call generate_comparison()
+     with those 3 automatically (never ask first). Then recommend the best one.
+4. When the user confirms, call save_photo() with the chosen file_path.
+
+## Quality criteria
 
 The cards are for a toddler (Lena, ~2 years old) learning letter-sound associations.
 A good card photo: face clearly visible, person recognisable, clean background preferred.
 
-Note: card preview images appear inside the "Used lettercards integration" section in
-Claude Desktop — not inline in the chat. Always tell the user to click that section header
-to expand it and see the cards. Say something like: "Click 'Used lettercards integration'
-above to see the card previews."
+## UI note
+
+Card preview images appear inside the "Used lettercards integration" section in Claude
+Desktop — not inline in the chat. Always tell the user to expand that section to see the
+cards: "Click 'Used lettercards integration' above to see the card previews."
 """)
 
 # ── Image processing ─────────────────────────────────────────────────────────
