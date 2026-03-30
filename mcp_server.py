@@ -74,6 +74,11 @@ If staging is empty, tell the user to copy photos there first.
 
 The cards are for a toddler (Lena, ~2 years old) learning letter-sound associations.
 A good card photo: face clearly visible, person recognisable, clean background preferred.
+
+Note: card preview images appear inside the "Used lettercards integration" section in
+Claude Desktop — not inline in the chat. Always tell the user to click that section header
+to expand it and see the cards. Say something like: "Click 'Used lettercards integration'
+above to see the card previews."
 """)
 
 # ── Image processing ─────────────────────────────────────────────────────────
