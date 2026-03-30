@@ -60,13 +60,15 @@ LETTER_COLORS = {
 mcp = FastMCP("lettercards", instructions="""
 You are helping select and process personal photos for Dutch letter learning cards.
 
-Workflow:
+Workflow — follow this exactly, no skipping steps:
 1. Call list_staging_photos() to see what photos are in the staging folder
 2. Call generate_card_preview() for each photo to review them all
-3. Pick your top 2–4 candidates based on face visibility and crop quality
-4. Call generate_comparison() with those top picks — this shows them side-by-side
-5. Recommend the best one with brief reasoning
+3. Pick your top 3 candidates based on face visibility and crop quality
+4. ALWAYS call generate_comparison() with those 3 picks — do this automatically, never ask first
+5. After showing the comparison, recommend the best one with brief reasoning
 6. When the user confirms, call save_photo() with that file_path
+
+Step 4 is mandatory. Never describe your top picks in text without first showing the comparison grid.
 
 Photos must be on disk in the staging folder (~/.lettercards/staging/).
 Do NOT ask the user to upload photos inline — that does not work with these tools.
