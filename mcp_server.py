@@ -60,16 +60,15 @@ LETTER_COLORS = {
 mcp = FastMCP("lettercards", instructions="""
 You are helping select and process personal photos for Dutch letter learning cards.
 
-## IMPORTANT: these tools need files on disk
+## Two input modes
 
-These tools work with FILE PATHS only. They cannot access photos that are embedded
-inline in the conversation (e.g. images pasted or dragged directly into the chat).
+These tools accept photos in two ways — use whichever applies:
 
-If the user has dragged photos directly into the chat and you do not have file paths
-for them, say: "I can see your photos but I can't process inline images directly.
-Please copy the photos to ~/.lettercards/staging/ and I'll use those — or add the
-folder containing the photos to the Cowork context panel on the right."
-Do NOT call list_staging_photos() in this case — it won't help.
+**Inline images (dropped into the chat):** Use the `image_data` parameter — pass the
+base64 of each inline image directly. Do NOT call list_staging_photos().
+
+**Files on disk (staging folder or Cowork folder context):** Use the `file_path`
+parameter. Call list_staging_photos() first to get the paths.
 
 ## When you have file paths (staging folder or Cowork folder context)
 
@@ -229,47 +228,73 @@ def list_staging_photos() -> str:
     return "\n".join(lines)
 
 
+def _load_image_data(file_path: str | None, image_data: str | None) -> str:
+    """Return base64 image data from either a file path or inline base64."""
+    if file_path is not None:
+        return base64.b64encode(Path(file_path).read_bytes()).decode()
+    if image_data is not None:
+        return image_data
+    raise ValueError("Provide either file_path or image_data")
+
+
 @mcp.tool()
-def generate_card_preview(name: str, file_path: str) -> MCPImage:
+def generate_card_preview(
+    name: str,
+    file_path: str | None = None,
+    image_data: str | None = None,
+) -> MCPImage:
     """
     Process a photo and render it as an actual letter card preview.
     Call this for each candidate photo so the user can compare real cards.
 
+    Provide EITHER file_path (photo on disk) OR image_data (base64 of an inline image).
+
     Args:
         name: Person's name as it should appear on the card (e.g. 'Tata', 'mama')
-        file_path: Absolute path to the image file on disk (JPEG or PNG)
+        file_path: Absolute path to the image file on disk
+        image_data: Base64-encoded image (use when photo is inline in the conversation)
     """
-    image_data = base64.b64encode(Path(file_path).read_bytes()).decode()
-    photo = decode_and_process(image_data)
+    data  = _load_image_data(file_path, image_data)
+    photo = decode_and_process(data)
     card  = render_card(photo, name)
     return pil_to_mcp_image(card)
 
 
 @mcp.tool()
-def generate_comparison(name: str, file_paths: list[str]) -> MCPImage:
+def generate_comparison(
+    name: str,
+    file_paths: list[str] | None = None,
+    images_data: list[str] | None = None,
+) -> MCPImage:
     """
     Render multiple photos as cards side-by-side for easy comparison.
     Call this with your top 2–4 candidates after reviewing all previews.
-    Returns a single image showing all cards next to each other.
+
+    Provide EITHER file_paths (list of paths on disk) OR images_data (list of base64).
 
     Args:
         name: Person's name as it should appear on each card
         file_paths: List of absolute paths to the candidate photos
+        images_data: List of base64-encoded images (for inline photos)
     """
+    sources = file_paths if file_paths is not None else images_data
+    if not sources:
+        raise ValueError("Provide either file_paths or images_data")
+
     cards = []
-    for fp in file_paths:
-        image_data = base64.b64encode(Path(fp).read_bytes()).decode()
-        photo = decode_and_process(image_data)
+    for src in sources:
+        data  = _load_image_data(src if file_paths is not None else None,
+                                  src if images_data is not None else None)
+        photo = decode_and_process(data)
         cards.append(render_card(photo, name))
 
-    pad = 12
+    pad     = 12
     total_w = sum(c.width for c in cards) + pad * (len(cards) + 1)
     total_h = max(c.height for c in cards) + pad * 2
 
     grid = Image.new('RGB', (total_w, total_h), (230, 228, 215))
     x = pad
     for card in cards:
-        # Strip alpha before pasting
         if card.mode == 'RGBA':
             bg = Image.new('RGB', card.size, (230, 228, 215))
             bg.paste(card, mask=card.split()[-1])
@@ -281,17 +306,24 @@ def generate_comparison(name: str, file_paths: list[str]) -> MCPImage:
 
 
 @mcp.tool()
-def save_photo(name: str, file_path: str) -> str:
+def save_photo(
+    name: str,
+    file_path: str | None = None,
+    image_data: str | None = None,
+) -> str:
     """
     Save the chosen photo to the personal library.
     Call this once the user has confirmed which photo to use.
 
+    Provide EITHER file_path (photo on disk) OR image_data (base64 of an inline image).
+
     Args:
         name: Person's name — saved as {name}.png (e.g. 'tata' → tata.png)
         file_path: Absolute path to the chosen image file on disk
+        image_data: Base64-encoded image (use when photo is inline in the conversation)
     """
-    image_data = base64.b64encode(Path(file_path).read_bytes()).decode()
-    photo = decode_and_process(image_data)
+    data  = _load_image_data(file_path, image_data)
+    photo = decode_and_process(data)
     PERSONAL_DIR.mkdir(parents=True, exist_ok=True)
     out = PERSONAL_DIR / f"{name.lower()}.png"
     photo.save(out, 'PNG')
