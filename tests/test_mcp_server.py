@@ -70,3 +70,89 @@ def test_decode_returns_pil_image():
     b64 = make_b64_image(300, 300)
     result = mcp_server.decode_and_process(b64)
     assert isinstance(result, Image.Image)
+
+
+# ── render_card ──────────────────────────────────────────────────────────────
+
+def make_photo(size=200):
+    return Image.new('RGB', (size, size), (180, 120, 60))
+
+
+def test_render_card_returns_image():
+    photo = make_photo()
+    card = mcp_server.render_card(photo, 'appel')
+    assert isinstance(card, Image.Image)
+
+
+def test_render_card_correct_dimensions():
+    photo = make_photo()
+    card = mcp_server.render_card(photo, 'deur')
+    assert card.size == (mcp_server.CARD_W, mcp_server.CARD_H)
+
+
+def test_render_card_uses_letter_color_for_known_letter():
+    """Card for letter 'a' uses the 'a' accent colour somewhere in the image."""
+    photo = make_photo()
+    card = mcp_server.render_card(photo, 'appel')
+    expected_color = mcp_server.LETTER_COLORS['a']
+    card_rgb = card.convert('RGB')
+    pixels = [card_rgb.getpixel((x, y)) for x in range(card_rgb.width) for y in range(card_rgb.height)]
+    assert any(p[:3] == expected_color for p in pixels)
+
+
+def test_render_card_unknown_letter_uses_default_color():
+    """Card for a word with no letter mapping falls back gracefully."""
+    photo = make_photo()
+    card = mcp_server.render_card(photo, '1ding')
+    assert card.size == (mcp_server.CARD_W, mcp_server.CARD_H)
+
+
+# ── save_photo ───────────────────────────────────────────────────────────────
+
+def test_save_photo_writes_file(tmp_path, monkeypatch):
+    monkeypatch.setenv('LETTERCARDS_PERSONAL_DIR', str(tmp_path))
+    import importlib
+    importlib.reload(mcp_server)
+
+    b64 = make_b64_image(300, 400)
+    mcp_server.save_photo(image_data=b64, name='tata')
+
+    out = tmp_path / 'tata.png'
+    assert out.exists()
+    img = Image.open(out)
+    assert img.format == 'PNG'
+
+
+def test_save_photo_lowercases_name(tmp_path, monkeypatch):
+    monkeypatch.setenv('LETTERCARDS_PERSONAL_DIR', str(tmp_path))
+    import importlib
+    importlib.reload(mcp_server)
+
+    b64 = make_b64_image(300, 300)
+    mcp_server.save_photo(image_data=b64, name='Mama')
+
+    assert (tmp_path / 'mama.png').exists()
+
+
+def test_save_photo_creates_personal_dir(tmp_path, monkeypatch):
+    personal_dir = tmp_path / 'new' / 'nested' / 'personal'
+    monkeypatch.setenv('LETTERCARDS_PERSONAL_DIR', str(personal_dir))
+    import importlib
+    importlib.reload(mcp_server)
+
+    b64 = make_b64_image(300, 300)
+    mcp_server.save_photo(image_data=b64, name='opa')
+
+    assert (personal_dir / 'opa.png').exists()
+
+
+def test_save_photo_returns_string_with_path(tmp_path, monkeypatch):
+    monkeypatch.setenv('LETTERCARDS_PERSONAL_DIR', str(tmp_path))
+    import importlib
+    importlib.reload(mcp_server)
+
+    b64 = make_b64_image(300, 300)
+    result = mcp_server.save_photo(image_data=b64, name='oma')
+
+    assert 'oma.png' in result
+    assert isinstance(result, str)
