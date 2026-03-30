@@ -60,27 +60,34 @@ LETTER_COLORS = {
 mcp = FastMCP("lettercards", instructions="""
 You are helping select and process personal photos for Dutch letter learning cards.
 
-## Finding photos
+## IMPORTANT: these tools need files on disk
 
-Photos can come from two places — check both:
-1. **Dropped into this conversation**: In Cowork mode, dragged files land on disk and are
-   accessible by path. Look for them in the session uploads directory or any path the user
-   mentions.
-2. **Staging folder**: Call list_staging_photos() to check ~/.lettercards/staging/.
+These tools work with FILE PATHS only. They cannot access photos that are embedded
+inline in the conversation (e.g. images pasted or dragged directly into the chat).
 
-Use whichever has photos. If neither has any, ask the user to either drop photos in or
-copy them to the staging folder.
+If the user has dragged photos directly into the chat and you do not have file paths
+for them, say: "I can see your photos but I can't process inline images directly.
+Please copy the photos to ~/.lettercards/staging/ and I'll use those — or add the
+folder containing the photos to the Cowork context panel on the right."
+Do NOT call list_staging_photos() in this case — it won't help.
 
-## Workflow
+## When you have file paths (staging folder or Cowork folder context)
 
-1. Find the photos (see above)
-2. Call generate_card_preview() for each photo
-3. Then, based on how many photos there are:
-   - **1–3 photos**: Show all card previews individually — no comparison grid needed.
-     Recommend the best one directly.
-   - **4+ photos**: Pick the top 3 candidates, then ALWAYS call generate_comparison()
-     with those 3 automatically (never ask first). Then recommend the best one.
-4. When the user confirms, call save_photo() with the chosen file_path.
+**Step 1 — list:** Call list_staging_photos() to get file paths.
+
+**Step 2 — preview all:** Call generate_card_preview(name, file_path) for every photo.
+Do this silently — no text output yet.
+
+**Step 3 — compare or recommend:**
+- If there were 1–3 photos: recommend the best one directly with brief reasoning.
+- If there were 4+ photos: call generate_comparison(name, [top3_paths]) RIGHT NOW,
+  before writing any text. Do not describe your picks in words first. The comparison
+  call must happen before your text response.
+
+**Step 4 — recommend:** After the comparison (or after step 2 for 1-3 photos), write
+your recommendation with brief reasoning.
+
+**Step 5 — save:** When the user confirms, call save_photo(name, chosen_path).
 
 ## Quality criteria
 
@@ -89,9 +96,9 @@ A good card photo: face clearly visible, person recognisable, clean background p
 
 ## UI note
 
-Card preview images appear inside the "Used lettercards integration" section in Claude
-Desktop — not inline in the chat. Always tell the user to expand that section to see the
-cards: "Click 'Used lettercards integration' above to see the card previews."
+Card preview images appear inside the "Used lettercards integration" section — not
+inline in the chat. Always tell the user: "Click 'Used lettercards integration' above
+to see the card previews."
 """)
 
 # ── Image processing ─────────────────────────────────────────────────────────
