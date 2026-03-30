@@ -1,0 +1,72 @@
+{
+  "deck_protocol": "1.0",
+  "next_batch": ["h", "k", "n"],
+  "printed_cards": [
+    {"word": "appel", "printed_date": "2026-03-20"},
+    {"word": "deur", "printed_date": "2026-03-20"},
+    {"word": "eend", "printed_date": "2026-03-20"},
+    {"word": "oma", "printed_date": "2026-03-20"}
+  ],
+  "sessions": [
+    {
+      "date": "2026-03-18",
+      "type": "generation",
+      "summary": "Added words: appel, aap, auto for letter A",
+      "cards_added": ["appel", "aap", "auto"],
+      "cards_modified": []
+    },
+    {
+      "date": "2026-03-20",
+      "type": "print",
+      "letters": ["a", "d", "e", "o"],
+      "card_count": 12,
+      "notes": "Printed on 160gsm, laminated"
+    },
+    {
+      "date": "2026-03-22",
+      "type": "review",
+      "duration_minutes": 15,
+      "letters_played": ["a", "d", "o"],
+      "observations": [
+        {
+          "card": "appel",
+          "reaction": "positive",
+          "notes": "Points and says 'appel!' immediately"
+        },
+        {
+          "card": "wolf",
+          "reaction": "confused",
+          "notes": "Says 'hond' instead"
+        }
+      ]
+    }
+  ],
+  "progress": {
+    "letters": {
+      "a": {
+        "status": "recognized",
+        "first_introduced": "2026-03-20",
+        "observations": [
+          {"date": "2026-03-22", "note": "Points at A on cereal box"}
+        ]
+      },
+      "d": {
+        "status": "learning",
+        "first_introduced": "2026-03-20",
+        "observations": [
+          {"date": "2026-03-22", "note": "Knows 'deur' but doesn't connect to letter yet"}
+        ]
+      }
+    },
+    "summary_snapshots": [
+      {
+        "date": "2026-03-25",
+        "total_letters_introduced": 6,
+        "recognized": ["a", "o"],
+        "learning": ["d", "e"],
+        "not_yet": ["w", "z"],
+        "notes": "Good progress on vowels"
+      }
+    ]
+  }
+}
