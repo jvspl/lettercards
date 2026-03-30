@@ -90,3 +90,81 @@ def test_validate_warns_when_printed_cards_not_a_list():
     state = {"deck_protocol": "1.0", "printed_cards": "not a list"}
     warnings = validate_deck_state(state, set())
     assert any("not a list" in w or "corrupt" in w for w in warnings)
+
+
+# ── generate.py integration ───────────────────────────────────────────────────
+
+import subprocess
+import sys
+
+
+def write_csv_for_status(tmp_path, rows="a,appel,appel.png,,no\nd,deur,deur.png,,no\n"):
+    csv_file = tmp_path / "cards.csv"
+    csv_file.write_text("letter,word,image,font,personal\n" + rows, encoding="utf-8")
+    return csv_file
+
+
+def test_status_flag_prints_summary(tmp_path):
+    write_csv_for_status(tmp_path)
+    state = {
+        "deck_protocol": "1.0",
+        "printed_cards": [{"word": "appel", "printed_date": "2026-03-20"}],
+        "sessions": [],
+    }
+    (tmp_path / "deck-state.json").write_text(json.dumps(state), encoding="utf-8")
+
+    result = subprocess.run(
+        [sys.executable, "generate.py", "--status",
+         "--csv", str(tmp_path / "cards.csv"),
+         "--deck-state", str(tmp_path / "deck-state.json")],
+        capture_output=True, text=True
+    )
+    assert result.returncode == 0
+    assert "appel" in result.stdout
+    assert "printed" in result.stdout.lower()
+
+
+def test_status_flag_works_without_deck_state_file(tmp_path):
+    write_csv_for_status(tmp_path)
+
+    result = subprocess.run(
+        [sys.executable, "generate.py", "--status",
+         "--csv", str(tmp_path / "cards.csv"),
+         "--deck-state", str(tmp_path / "nonexistent.json")],
+        capture_output=True, text=True
+    )
+    assert result.returncode == 0
+    assert "no deck-state" in result.stdout.lower() or "not found" in result.stdout.lower()
+
+
+def test_startup_validation_prints_warning_for_unknown_protocol(tmp_path):
+    write_csv_for_status(tmp_path)
+    state = {"deck_protocol": "99.0", "printed_cards": []}
+    (tmp_path / "deck-state.json").write_text(json.dumps(state), encoding="utf-8")
+    images_dir = tmp_path / "images"
+    images_dir.mkdir()
+
+    result = subprocess.run(
+        [sys.executable, "generate.py", "--no-placeholders",
+         "--csv", str(tmp_path / "cards.csv"),
+         "--deck-state", str(tmp_path / "deck-state.json"),
+         "--output", str(tmp_path / "out.pdf")],
+        capture_output=True, text=True
+    )
+    assert "99.0" in result.stdout or "99.0" in result.stderr
+
+
+def test_startup_validation_no_warning_when_state_missing(tmp_path):
+    write_csv_for_status(tmp_path)
+    images_dir = tmp_path / "images"
+    images_dir.mkdir()
+
+    result = subprocess.run(
+        [sys.executable, "generate.py", "--no-placeholders",
+         "--csv", str(tmp_path / "cards.csv"),
+         "--deck-state", str(tmp_path / "nonexistent.json"),
+         "--output", str(tmp_path / "out.pdf")],
+        capture_output=True, text=True
+    )
+    assert "deck_protocol" not in result.stdout
+    assert "deck_protocol" not in result.stderr

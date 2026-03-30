@@ -34,6 +34,7 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from PIL import Image
+from deck_state import load_deck_state, validate_deck_state
 
 # ── Config ──────────────────────────────────────────────────────────
 
@@ -510,6 +511,10 @@ def main():
                         help='Directory for personal photos (default: ~/.lettercards/personal/)')
     parser.add_argument('--safe-letters-only', action='store_true',
                         help='Exclude any letter that has at least one personal=yes card (useful for screenshots)')
+    parser.add_argument('--status', action='store_true',
+                        help='Show deck status summary and exit (no PDF generated)')
+    parser.add_argument('--deck-state', type=str, default=None,
+                        help='Path to deck-state.json (default: deck-state.json next to cards.csv)')
     args = parser.parse_args()
 
     base_dir = Path(__file__).parent
@@ -517,6 +522,51 @@ def main():
     images_dir = base_dir / "images"
     personal_dir = get_personal_images_dir(args.personal_dir)
     output_path = base_dir / args.output
+
+    # Resolve deck state path
+    deck_state_path = Path(args.deck_state) if args.deck_state else csv_path.parent / 'deck-state.json'
+
+    # --status: print deck summary and exit
+    if args.status:
+        state = load_deck_state(deck_state_path)
+        if state is None:
+            print(f"No deck-state.json found at {deck_state_path}")
+            print("Run some print sessions to start tracking your deck.")
+        else:
+            cards = load_cards(csv_path)
+            csv_words = {c['word'] for c in cards}
+            warnings = validate_deck_state(state, csv_words)
+            if warnings:
+                print("Warnings:")
+                for w in warnings:
+                    print(f"  ⚠ {w}")
+                print()
+            printed = state.get('printed_cards', [])
+            printed_words = {e.get('word') for e in printed}
+            not_printed = csv_words - printed_words
+            print(f"Active cards in deck.csv: {len(csv_words)}")
+            print(f"Printed cards in inventory: {len(printed)}")
+            if printed_words:
+                print(f"Printed: {', '.join(sorted(printed_words))}")
+            if not_printed:
+                print(f"Not yet printed ({len(not_printed)}): {', '.join(sorted(not_printed))}")
+            else:
+                print("All active cards have been printed.")
+            sessions = state.get('sessions', [])
+            print(f"Recorded sessions: {len(sessions)}")
+            next_batch = state.get('next_batch', [])
+            if next_batch:
+                print(f"Next planned batch: {', '.join(next_batch)}")
+        sys.exit(0)
+
+    # Startup validation: warn about deck state issues, but don't abort
+    state = load_deck_state(deck_state_path)
+    if state is not None:
+        cards_for_validation = load_cards(csv_path)
+        csv_words = {c['word'] for c in cards_for_validation}
+        warnings = validate_deck_state(state, csv_words)
+        for w in warnings:
+            print(f"⚠ deck-state warning: {w}")
 
     # Register fonts
     available_fonts = register_fonts()
