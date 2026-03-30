@@ -2,5 +2,6 @@
 __pycache__/
 .DS_Store
 venv/
+venv-mcp/
 letterkaarten.pdf
 .tmp/
