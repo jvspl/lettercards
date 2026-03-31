@@ -533,7 +533,11 @@ def main():
             print(f"No deck-state.json found at {deck_state_path}")
             print("Run some print sessions to start tracking your deck.")
         else:
-            cards = load_cards(csv_path)
+            try:
+                cards = load_cards(csv_path)
+            except FileNotFoundError:
+                print(f"Error: CSV file not found: {csv_path}")
+                sys.exit(1)
             csv_words = {c['word'] for c in cards}
             warnings = validate_deck_state(state, csv_words)
             if warnings:
@@ -542,7 +546,7 @@ def main():
                     print(f"  ⚠ {w}")
                 print()
             printed = state.get('printed_cards', [])
-            printed_words = {e.get('word') for e in printed}
+            printed_words = {e.get('word') for e in printed if e.get('word')}
             not_printed = csv_words - printed_words
             print(f"Active cards in deck.csv: {len(csv_words)}")
             print(f"Printed cards in inventory: {len(printed)}")
