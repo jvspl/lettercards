@@ -119,6 +119,16 @@ DEFAULT_FONTS = [
 ]
 
 
+def resolve_default_csv_path(base_dir, csv_arg=None):
+    """Resolve the active deck CSV during the cards.csv -> deck.csv transition."""
+    if csv_arg:
+        return base_dir / csv_arg
+    deck_csv = base_dir / "deck.csv"
+    if deck_csv.exists():
+        return deck_csv
+    return base_dir / "cards.csv"
+
+
 # ── Personal Images Directory ──────────────────────────────────────
 
 def get_personal_images_dir(cli_arg=None):
@@ -581,7 +591,7 @@ def print_deck_status(csv_path, deck_state_path):
     return 0
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description="Generate letter learning cards as PDF")
     parser.add_argument('--letters', type=str, default=None,
                         help='Comma-separated letters to include (e.g., a,d,o)')
@@ -591,7 +601,7 @@ def main():
                         help='Output PDF filename')
     parser.add_argument('--no-placeholders', action='store_true',
                         help='Skip generating placeholder images')
-    parser.add_argument('--csv', type=str, default='deck.csv',
+    parser.add_argument('--csv', type=str, default=None,
                         help='Path to the CSV config file')
     parser.add_argument('--personal-dir', type=str, default=None,
                         help='Directory for personal photos (default: ~/.lettercards/personal/)')
@@ -601,10 +611,10 @@ def main():
                         help='Show deck status summary and exit (no PDF generated)')
     parser.add_argument('--deck-state', type=str, default=None,
                         help='Path to deck-state.json (default: next to selected deck CSV)')
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     base_dir = Path(__file__).parent
-    csv_path = base_dir / args.csv
+    csv_path = resolve_default_csv_path(base_dir, args.csv)
     images_dir = base_dir / "images"
     personal_dir = get_personal_images_dir(args.personal_dir)
     output_path = base_dir / args.output
@@ -656,7 +666,8 @@ def main():
     print(f"\nPersonal images dir: {personal_dir}")
     print("Generating PDF...")
     generate_pdf(cards, output_path, images_dir, personal_dir, available_fonts, args.font)
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())
