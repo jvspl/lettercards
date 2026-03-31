@@ -153,7 +153,7 @@ def process_image(source_path, output_size=DEFAULT_SIZE):
     return resized
 
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Process personal photos for letter cards",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -173,31 +173,31 @@ Examples:
                         help=f'Output size in pixels (default: {DEFAULT_SIZE})')
     parser.add_argument('--force', '-f', action='store_true', help='Overwrite existing file')
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # List mode
     if args.list:
         list_staging()
-        return
+        return 0
 
     # Need a name to process
     if not args.name:
         parser.print_help()
-        return
+        return 0
 
     staging, personal = ensure_dirs()
 
     # Find source image
     source = find_source_image(staging, args.source)
     if not source:
-        sys.exit(1)
+        return 1
 
     # Check output path
     output_path = personal / f"{args.name}.png"
     if output_path.exists() and not args.force and not args.preview:
         print(f"Output file already exists: {output_path}")
         print(f"Use --force to overwrite, or --preview to see result first")
-        sys.exit(1)
+        return 1
 
     # Process the image
     print(f"Processing: {source.name}")
@@ -207,7 +207,7 @@ Examples:
         result = process_image(source, args.size)
     except Exception as e:
         print(f"Error processing image: {e}")
-        sys.exit(1)
+        return 1
 
     print(f"  Size: {result.size[0]}x{result.size[1]}")
 
@@ -223,7 +223,8 @@ Examples:
         print(f"  1. Verify the image looks good")
         print(f"  2. Run: python generate.py --letters {args.name[0]}")
         print(f"  3. Check the PDF")
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())
