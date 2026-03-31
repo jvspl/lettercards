@@ -34,7 +34,7 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from PIL import Image
-from deck_state import load_deck_state, validate_deck_state
+from deck_state import load_deck_state, read_deck_state, validate_deck_state
 
 # ── Config ──────────────────────────────────────────────────────────
 
@@ -423,6 +423,22 @@ def load_cards(csv_path, letters_filter=None):
     return cards
 
 
+def load_all_deck_words(csv_path):
+    """Load all words from the selected deck CSV, regardless of status or printability."""
+    words = set()
+    with open(csv_path, 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            letter = row.get('letter', '').strip()
+            if not letter or letter.startswith('#'):
+                continue
+            word = row.get('word', '').strip()
+            if not word or 'geen voorbeeld' in word:
+                continue
+            words.add(word)
+    return words
+
+
 def get_image_path(card, images_dir, personal_dir):
     """Get the image path for a card, checking personal dir first for personal photos."""
     if not card['image']:
@@ -495,6 +511,62 @@ def generate_pdf(cards, output_path, images_dir, personal_dir, available_fonts, 
     print(f"  Pages: {(total + COLS * ROWS - 1) // (COLS * ROWS)}")
 
 
+def print_deck_status(csv_path, deck_state_path):
+    """Print a human-readable deck summary."""
+    try:
+        cards = load_cards(csv_path)
+        csv_words = load_all_deck_words(csv_path)
+    except FileNotFoundError:
+        print(f"Error: deck CSV not found: {csv_path}")
+        return 1
+
+    state, state_error = read_deck_state(deck_state_path)
+    if state_error:
+        print(f"Error: could not read deck-state.json at {deck_state_path}: {state_error}")
+        return 1
+    if state is None:
+        print(f"No deck-state.json found at {deck_state_path}")
+        print("Run some print or review sessions to start tracking deck state.")
+        return 0
+
+    warnings = validate_deck_state(state, csv_words)
+    if warnings:
+        print("Warnings:")
+        for warning in warnings:
+            print(f"  ⚠ {warning}")
+        print()
+
+    printed_cards = state.get("printed_cards", [])
+    printed_word_entries = [
+        entry.get("word")
+        for entry in printed_cards
+        if isinstance(entry, dict) and isinstance(entry.get("word"), str) and entry.get("word").strip()
+    ]
+    printed_word_set = set(printed_word_entries)
+    not_printed = sorted(csv_words - printed_word_set)
+
+    print(f"Active cards in selected deck: {len(cards)}")
+    print(f"Printed cards in inventory: {len(printed_cards)}")
+    if printed_word_entries:
+        print(f"Distinct printed words: {len(printed_word_set)}")
+    if not_printed:
+        print(f"Not yet printed ({len(not_printed)}): {', '.join(not_printed)}")
+    else:
+        print("All active cards have been printed at least once.")
+
+    sessions = state.get("sessions", [])
+    if isinstance(sessions, list):
+        print(f"Recorded sessions: {len(sessions)}")
+    else:
+        print("Recorded sessions: invalid data")
+
+    next_batch = state.get("next_batch", [])
+    if isinstance(next_batch, list) and next_batch:
+        print(f"Next planned batch: {', '.join(str(item) for item in next_batch)}")
+
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description="Generate letter learning cards as PDF")
     parser.add_argument('--letters', type=str, default=None,
@@ -514,7 +586,7 @@ def main():
     parser.add_argument('--status', action='store_true',
                         help='Show deck status summary and exit (no PDF generated)')
     parser.add_argument('--deck-state', type=str, default=None,
-                        help='Path to deck-state.json (default: deck-state.json next to cards.csv)')
+                        help='Path to deck-state.json (default: next to selected deck CSV)')
     args = parser.parse_args()
 
     base_dir = Path(__file__).parent
@@ -522,55 +594,22 @@ def main():
     images_dir = base_dir / "images"
     personal_dir = get_personal_images_dir(args.personal_dir)
     output_path = base_dir / args.output
+    deck_state_path = Path(args.deck_state) if args.deck_state else csv_path.parent / "deck-state.json"
 
-    # Resolve deck state path
-    deck_state_path = Path(args.deck_state) if args.deck_state else csv_path.parent / 'deck-state.json'
-
-    # --status: print deck summary and exit
     if args.status:
-        state = load_deck_state(deck_state_path)
-        if state is None:
-            print(f"No deck-state.json found at {deck_state_path}")
-            print("Run some print sessions to start tracking your deck.")
-        else:
-            try:
-                cards = load_cards(csv_path)
-            except FileNotFoundError:
-                print(f"Error: CSV file not found: {csv_path}")
-                sys.exit(1)
-            csv_words = {c['word'] for c in cards}
-            warnings = validate_deck_state(state, csv_words)
-            if warnings:
-                print("Warnings:")
-                for w in warnings:
-                    print(f"  ⚠ {w}")
-                print()
-            printed = state.get('printed_cards', [])
-            printed_words = {e.get('word') for e in printed if e.get('word')}
-            not_printed = csv_words - printed_words
-            print(f"Active cards in deck.csv: {len(csv_words)}")
-            print(f"Printed cards in inventory: {len(printed)}")
-            if printed_words:
-                print(f"Printed: {', '.join(sorted(printed_words))}")
-            if not_printed:
-                print(f"Not yet printed ({len(not_printed)}): {', '.join(sorted(not_printed))}")
-            else:
-                print("All active cards have been printed.")
-            sessions = state.get('sessions', [])
-            print(f"Recorded sessions: {len(sessions)}")
-            next_batch = state.get('next_batch', [])
-            if next_batch:
-                print(f"Next planned batch: {', '.join(next_batch)}")
-        sys.exit(0)
+        sys.exit(print_deck_status(csv_path, deck_state_path))
 
-    # Startup validation: warn about deck state issues, but don't abort
-    state = load_deck_state(deck_state_path)
-    if state is not None:
-        cards_for_validation = load_cards(csv_path)
-        csv_words = {c['word'] for c in cards_for_validation}
-        warnings = validate_deck_state(state, csv_words)
-        for w in warnings:
-            print(f"⚠ deck-state warning: {w}")
+    state, state_error = read_deck_state(deck_state_path)
+    if state_error:
+        print(f"⚠ deck-state warning: could not read {deck_state_path}: {state_error}")
+    elif state is not None:
+        try:
+            csv_words = load_all_deck_words(csv_path)
+        except FileNotFoundError:
+            print(f"Error: deck CSV not found: {csv_path}")
+            sys.exit(1)
+        for warning in validate_deck_state(state, csv_words):
+            print(f"⚠ deck-state warning: {warning}")
 
     # Register fonts
     available_fonts = register_fonts()
