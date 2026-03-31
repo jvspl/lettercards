@@ -5,3 +5,4 @@ venv/
 letterkaarten.pdf
 .tmp/
 .worktrees/
+.claude/settings.local.json
