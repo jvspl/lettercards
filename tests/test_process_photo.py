@@ -99,3 +99,53 @@ def test_result_is_pil_image(tmp_path):
     path = make_image(tmp_path, 300, 400)
     result = process_image(path)
     assert isinstance(result, Image.Image)
+
+
+# ── auto_enhance ─────────────────────────────────────────────────────────────
+
+from process_photo import auto_enhance, make_comparison_grid
+
+
+def test_auto_enhance_returns_pil_image():
+    img = Image.new('RGB', (200, 200), (100, 100, 100))
+    result = auto_enhance(img)
+    assert isinstance(result, Image.Image)
+
+
+def test_auto_enhance_same_size():
+    img = Image.new('RGB', (200, 200), (100, 100, 100))
+    result = auto_enhance(img)
+    assert result.size == img.size
+
+
+def test_auto_enhance_returns_rgb():
+    img = Image.new('RGB', (200, 200), (100, 100, 100))
+    result = auto_enhance(img)
+    assert result.mode == 'RGB'
+
+
+# ── make_comparison_grid ─────────────────────────────────────────────────────
+
+def make_thumb(color=(200, 100, 50), size=100):
+    return Image.new('RGB', (size, size), color)
+
+
+def test_make_comparison_grid_single_entry():
+    entries = [('1', 'photo.jpg', make_thumb())]
+    grid = make_comparison_grid(entries, cell_size=100, cols=3)
+    assert isinstance(grid, Image.Image)
+
+
+def test_make_comparison_grid_multiple_entries_wraps_rows():
+    entries = [(str(i), f'photo{i}.jpg', make_thumb()) for i in range(4)]
+    grid = make_comparison_grid(entries, cell_size=100, cols=3)
+    assert isinstance(grid, Image.Image)
+    assert grid.height > 0
+
+
+def test_make_comparison_grid_truncates_long_filename():
+    """Filenames longer than 36 chars should not raise."""
+    long_name = 'a' * 40 + '.jpg'
+    entries = [('1', long_name, make_thumb())]
+    grid = make_comparison_grid(entries, cell_size=100, cols=1)
+    assert isinstance(grid, Image.Image)
