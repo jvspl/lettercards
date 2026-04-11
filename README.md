@@ -48,6 +48,12 @@ Use this order of preference:
 
 This keeps the repo usable whether work is done by Codex, Claude Code, or human developers, and whether the runtime is desktop or web/cloud.
 
+### Agent compatibility notes
+
+- In some web/cloud runtimes, creating the **actual GitHub PR** is a manual UI step (e.g., clicking "Create PR"), even when the agent has prepared commits and PR text.
+- In desktop/local runtimes with `gh` configured, PR creation can be fully CLI-driven (`gh pr create`).
+- When in doubt, treat PR draft text generation and PR publication as two separate steps.
+
 ### GitHub CLI — fine-grained PAT (desktop/local mode)
 
 If you are using the `gh` CLI, use a **fine-grained personal access token** scoped to this repository only. A classic OAuth token grants full admin access (merge bypassing branch protection, delete repo, manage webhooks) — do not use one.
