@@ -102,7 +102,7 @@ def cmd_deck_check(args: argparse.Namespace) -> int:
     csv_arg = args.csv if args.csv is not None else default_csv_argument()
     csv_path = base_dir / csv_arg
     deck_state_path = Path(args.deck_state) if args.deck_state else csv_path.parent / "deck-state.json"
-    personal_dir = process_photo.get_dirs()[1] if args.personal_dir is None else Path(args.personal_dir)
+    personal_dir = generate.get_personal_images_dir(args.personal_dir)
     images_dir = base_dir / "images"
 
     issues: list[str] = []

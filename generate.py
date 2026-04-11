@@ -621,7 +621,7 @@ def main(argv=None):
     deck_state_path = Path(args.deck_state) if args.deck_state else csv_path.parent / "deck-state.json"
 
     if args.status:
-        sys.exit(print_deck_status(csv_path, deck_state_path))
+        return print_deck_status(csv_path, deck_state_path)
 
     state, state_error = read_deck_state(deck_state_path)
     if state_error:
