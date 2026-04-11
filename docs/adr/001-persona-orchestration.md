@@ -97,16 +97,6 @@ Issues are the coordination layer. The orchestrator polls `gh issue list` and ro
 | `persona:architect` | Architect |
 | `needs:review` | Architect (cross-cutting review) |
 
-#### Transport abstraction for different runtimes
-
-The orchestration model depends on GitHub data/actions, but not on one specific transport. Runtime preference order:
-
-1. **Built-in integration (MCP/API/UI bridge)** when available.
-2. **`gh` CLI** in desktop/local environments.
-3. **Operator-assisted/manual fallback** when direct integration is unavailable.
-
-This preserves the same persona routing model while making execution portable across Claude Desktop, Codex Cloud, and human-operated workflows.
-
 Handoffs use issue comments and PR labels. When the Engineer opens a PR, it adds `needs:designer-review` — the orchestrator picks this up next session and invokes the Designer subagent.
 
 ### Orchestrator responsibilities

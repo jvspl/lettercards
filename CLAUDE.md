@@ -55,18 +55,6 @@ bash tests/test_hooks.sh
 gh pr create --draft --body-file .tmp/pr-body.md   # then: rm .tmp/pr-body.md
 ```
 
-### Runtime compatibility (Desktop + Cloud)
-
-Use this operational order depending on the runtime:
-
-1. **Built-in GitHub integration (MCP/server/UI)** if available.
-2. **`gh` CLI** if available (desktop/local default).
-3. **Manual publish fallback** if neither is available: prepare commits + PR text, then ask the operator to publish via UI.
-
-Always separate:
-- **PR preparation** (code, commit(s), PR title/body draft)
-- **PR publication** (actual PR opened on GitHub)
-
 **Tests:** Run both suites before every PR touching `generate.py`, `process_photo.py`, or `.claude/hooks/`. For visual changes also run `python generate.py --letters d,e,w --safe-letters-only` and inspect the PDF.
 
 **PR scope:** Check `gh pr list` + `git branch` before starting. Same topic → same branch. Different topic → new branch + new PR. Unsure → ask the operator.

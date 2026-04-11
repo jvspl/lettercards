@@ -313,8 +313,6 @@ The file tracks:
 
 The conversational interface is not a feature to build — it is a protocol to design for. The engine and deck format are structured so that any Claude surface can act as an effective deck manager.
 
-The protocol is also runtime-agnostic: any agentic environment (Claude surfaces, Codex cloud/web, or human-operated tooling) can participate if it can (a) read/write deck files and (b) interact with GitHub through built-in integrations, CLI tooling, or operator-assisted manual handoff.
-
 **The interface is defined by two artifacts:**
 
 **1. Content-mode project knowledge.** A CLAUDE.md (or Claude.ai Project knowledge file) that tells Claude how to behave as a deck assistant. It covers how to read and modify `deck.csv` and `deck-state.json`, what questions to ask during a review session, how to suggest new words, how to plan a print batch, and how to record feedback and update card status.
