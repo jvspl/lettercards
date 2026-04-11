@@ -19,6 +19,13 @@ def make_b64_image(width=300, height=400, color=(200, 100, 50)):
     return base64.b64encode(buf.getvalue()).decode()
 
 
+def make_image_file(path, width=300, height=400, color=(200, 100, 50)):
+    """Write a JPEG image to path and return the path."""
+    img = Image.new('RGB', (width, height), color)
+    img.save(path, 'JPEG')
+    return path
+
+
 # ── PERSONAL_DIR env var ─────────────────────────────────────────────────────
 
 def test_personal_dir_uses_env_var(tmp_path, monkeypatch):
@@ -72,6 +79,26 @@ def test_decode_returns_pil_image():
     assert isinstance(result, Image.Image)
 
 
+# ── load_and_process ─────────────────────────────────────────────────────────
+
+def test_load_portrait_crops_to_square(tmp_path):
+    p = make_image_file(tmp_path / 'p.jpg', 300, 500)
+    result = mcp_server.load_and_process(str(p), size=100)
+    assert result.size == (100, 100)
+
+
+def test_load_landscape_crops_center(tmp_path):
+    p = make_image_file(tmp_path / 'l.jpg', 600, 300)
+    result = mcp_server.load_and_process(str(p), size=100)
+    assert result.size == (100, 100)
+
+
+def test_load_returns_pil_image(tmp_path):
+    p = make_image_file(tmp_path / 'sq.jpg', 300, 300)
+    result = mcp_server.load_and_process(str(p))
+    assert isinstance(result, Image.Image)
+
+
 # ── render_card ──────────────────────────────────────────────────────────────
 
 def make_photo(size=200):
@@ -107,31 +134,104 @@ def test_render_card_unknown_letter_uses_default_color():
     assert card.size == (mcp_server.CARD_W, mcp_server.CARD_H)
 
 
+# ── pick_photos (directory mode — no dialog needed) ──────────────────────────
+
+def test_pick_photos_directory_lists_images(tmp_path):
+    make_image_file(tmp_path / 'a.jpg')
+    make_image_file(tmp_path / 'b.png')
+    (tmp_path / 'notes.txt').write_text('ignore me')
+
+    result = mcp_server.pick_photos('test', directory=str(tmp_path))
+    assert '1.' in result
+    assert '2.' in result
+    assert 'notes.txt' not in result
+
+
+def test_pick_photos_directory_not_found():
+    result = mcp_server.pick_photos('test', directory='/nonexistent/definitely/not/here')
+    assert 'not found' in result.lower()
+
+
+def test_pick_photos_directory_empty(tmp_path):
+    result = mcp_server.pick_photos('test', directory=str(tmp_path))
+    assert 'No photos' in result
+
+
+def test_pick_photos_directory_returns_absolute_paths(tmp_path):
+    make_image_file(tmp_path / 'photo.jpg')
+    result = mcp_server.pick_photos('test', directory=str(tmp_path))
+    assert str(tmp_path) in result
+
+
+# ── generate_photo_grid ──────────────────────────────────────────────────────
+
+def test_generate_photo_grid_returns_mcp_image(tmp_path):
+    paths = []
+    for i in range(3):
+        p = tmp_path / f'photo{i}.jpg'
+        make_image_file(p, 300, 300, color=(50 * i, 80, 120))
+        paths.append(str(p))
+
+    from mcp.server.fastmcp import Image as MCPImage
+    result = mcp_server.generate_photo_grid(paths)
+    assert result is not None
+
+
+def test_generate_photo_grid_single_photo(tmp_path):
+    p = make_image_file(tmp_path / 'solo.jpg', 300, 300)
+    result = mcp_server.generate_photo_grid([str(p)])
+    assert result is not None
+
+
+def test_generate_photo_grid_bad_path_does_not_raise(tmp_path):
+    p = make_image_file(tmp_path / 'good.jpg', 300, 300)
+    result = mcp_server.generate_photo_grid([str(p), '/nonexistent/photo.jpg'])
+    assert result is not None
+
+
+# ── generate_comparison ───────────────────────────────────────────────────────
+
+def test_generate_comparison_returns_mcp_image(tmp_path):
+    paths = []
+    for i in range(2):
+        p = tmp_path / f'cand{i}.jpg'
+        make_image_file(p, 300, 400, color=(100 + 30 * i, 80, 60))
+        paths.append(str(p))
+
+    result = mcp_server.generate_comparison('Tata', paths)
+    assert result is not None
+
+
+def test_generate_comparison_single_photo(tmp_path):
+    p = make_image_file(tmp_path / 'one.jpg', 300, 400)
+    result = mcp_server.generate_comparison('mama', [str(p)])
+    assert result is not None
+
+
 # ── save_photo ───────────────────────────────────────────────────────────────
 
 def test_save_photo_writes_file(tmp_path, monkeypatch):
-    monkeypatch.setenv('LETTERCARDS_PERSONAL_DIR', str(tmp_path))
+    monkeypatch.setenv('LETTERCARDS_PERSONAL_DIR', str(tmp_path / 'personal'))
     import importlib
     importlib.reload(mcp_server)
 
-    b64 = make_b64_image(300, 400)
-    mcp_server.save_photo(image_data=b64, name='tata')
+    src = make_image_file(tmp_path / 'tata.jpg', 300, 400)
+    mcp_server.save_photo(name='tata', file_path=str(src))
 
-    out = tmp_path / 'tata.png'
+    out = tmp_path / 'personal' / 'tata.png'
     assert out.exists()
-    img = Image.open(out)
-    assert img.format == 'PNG'
+    assert Image.open(out).format == 'PNG'
 
 
 def test_save_photo_lowercases_name(tmp_path, monkeypatch):
-    monkeypatch.setenv('LETTERCARDS_PERSONAL_DIR', str(tmp_path))
+    monkeypatch.setenv('LETTERCARDS_PERSONAL_DIR', str(tmp_path / 'personal'))
     import importlib
     importlib.reload(mcp_server)
 
-    b64 = make_b64_image(300, 300)
-    mcp_server.save_photo(image_data=b64, name='Mama')
+    src = make_image_file(tmp_path / 'mama.jpg', 300, 300)
+    mcp_server.save_photo(name='Mama', file_path=str(src))
 
-    assert (tmp_path / 'mama.png').exists()
+    assert (tmp_path / 'personal' / 'mama.png').exists()
 
 
 def test_save_photo_creates_personal_dir(tmp_path, monkeypatch):
@@ -140,19 +240,19 @@ def test_save_photo_creates_personal_dir(tmp_path, monkeypatch):
     import importlib
     importlib.reload(mcp_server)
 
-    b64 = make_b64_image(300, 300)
-    mcp_server.save_photo(image_data=b64, name='opa')
+    src = make_image_file(tmp_path / 'opa.jpg', 300, 300)
+    mcp_server.save_photo(name='opa', file_path=str(src))
 
     assert (personal_dir / 'opa.png').exists()
 
 
 def test_save_photo_returns_string_with_path(tmp_path, monkeypatch):
-    monkeypatch.setenv('LETTERCARDS_PERSONAL_DIR', str(tmp_path))
+    monkeypatch.setenv('LETTERCARDS_PERSONAL_DIR', str(tmp_path / 'personal'))
     import importlib
     importlib.reload(mcp_server)
 
-    b64 = make_b64_image(300, 300)
-    result = mcp_server.save_photo(image_data=b64, name='oma')
+    src = make_image_file(tmp_path / 'oma.jpg', 300, 300)
+    result = mcp_server.save_photo(name='oma', file_path=str(src))
 
     assert 'oma.png' in result
     assert isinstance(result, str)

@@ -17,7 +17,6 @@ The output folder is:  ~/.lettercards/personal/
 
 import argparse
 import os
-import subprocess
 import sys
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageOps
@@ -240,7 +239,8 @@ def compare_photos(person_name, cell_size=280, cols=3):
     grid.save(out_path)
 
     print(f"\nGrid saved: {out_path}")
-    subprocess.run(['open', str(out_path)])
+    import webbrowser
+    webbrowser.open(out_path.as_uri())
 
     print(f"\nPick a number and run:")
     for i, (_, fname, _) in enumerate(entries, 1):

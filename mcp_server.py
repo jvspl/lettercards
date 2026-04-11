@@ -2,28 +2,26 @@
 """
 Lettercards MCP Server
 
-Exposes tools for Claude Desktop to guide the personal photo card workflow:
-- Drop photos into the Claude Desktop conversation
-- Claude calls generate_card_preview() to see the actual card
-- Claude calls save_photo() when you confirm
+Tools for any MCP-capable AI to guide the personal photo card workflow:
+- Open a native file picker to select candidate photos
+- Preview candidates as a numbered thumbnail grid (AI selects best 2-3)
+- Render selected photos as actual lettercards for final comparison
+- Save the chosen photo to the personal library
 
 Setup: see docs/mcp-setup.md
 Run via: venv-mcp/bin/python mcp_server.py
 """
 
-import base64
 import io
 import os
-import subprocess
-import sys
 from pathlib import Path
 
 from mcp.server.fastmcp import FastMCP, Image as MCPImage
 from PIL import Image, ImageDraw, ImageEnhance, ImageFont, ImageOps
 
-# ── Paths ────────────────────────────────────────────────────────────────────
+# ── Paths ─────────────────────────────────────────────────────────────────────
 
-REPO_DIR    = Path(__file__).parent
+REPO_DIR     = Path(__file__).parent
 PERSONAL_DIR = (
     Path(os.environ['LETTERCARDS_PERSONAL_DIR'])
     if 'LETTERCARDS_PERSONAL_DIR' in os.environ
@@ -34,10 +32,11 @@ STAGING_DIR = (
     if 'LETTERCARDS_STAGING_DIR' in os.environ
     else Path.home() / '.lettercards' / 'staging'
 )
+SUPPORTED_FORMATS = {'.jpg', '.jpeg', '.png', '.heic', '.webp'}
 
-# ── Card rendering constants (matches generate.py) ──────────────────────────
+# ── Card rendering constants (matches generate.py) ────────────────────────────
 
-CARD_W, CARD_H = 300, 450          # px at preview resolution
+CARD_W, CARD_H = 300, 450
 BG_PICTURE     = (245, 242, 225)   # warm cream
 CORNER_R       = 16
 DEFAULT_COLOR  = (220, 100, 40)    # orange fallback
@@ -55,58 +54,75 @@ LETTER_COLORS = {
     'y': (80,  40,  200), 'z': (60,  180, 140),
 }
 
-# ── MCP server ───────────────────────────────────────────────────────────────
+# ── Fonts (cross-platform) ────────────────────────────────────────────────────
+
+# Searched in order; first match wins. PIL default is the final fallback.
+_FONT_CANDIDATES = [
+    str(REPO_DIR / "fonts" / "DejaVuSans-Bold.ttf"),           # in-repo (any OS)
+    # macOS
+    "/System/Library/Fonts/Supplemental/Arial Rounded Bold.ttf",
+    "/System/Library/Fonts/Helvetica.ttc",
+    # Linux
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+    # Windows
+    "C:/Windows/Fonts/arialbd.ttf",
+    "C:/Windows/Fonts/calibrib.ttf",
+]
+
+
+def _load_font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    for path in _FONT_CANDIDATES:
+        if Path(path).exists():
+            try:
+                return ImageFont.truetype(path, size)
+            except Exception:
+                continue
+    return ImageFont.load_default()
+
+
+# ── MCP server ────────────────────────────────────────────────────────────────
 
 mcp = FastMCP("lettercards", instructions="""
-You are helping select and process personal photos for Dutch letter learning cards.
+You are helping select and process personal photos for letter learning cards.
 
-## Two input modes
+## Workflow
 
-These tools accept photos in two ways — use whichever applies:
+**Step 1 — pick photos:** Call pick_photos(name). A native file picker opens and
+the user selects candidate photos from anywhere on their computer.
+The tool returns a numbered list of absolute file paths.
 
-**Inline images (dropped into the chat):** Use the `image_data` parameter — pass the
-base64 of each inline image directly. Do NOT call list_staging_photos().
+**Step 2 — evaluate and compare:**
+- 1–3 photos selected: call generate_comparison(name, file_paths) immediately.
+- 4+ photos selected: call generate_photo_grid(file_paths) first. Evaluate the
+  returned grid image with your vision — look for face clearly visible, clean
+  background, good lighting. Pick the best 2–3, then call
+  generate_comparison(name, best_file_paths) with only those.
 
-**Files on disk (staging folder or Cowork folder context):** Use the `file_path`
-parameter. Call list_staging_photos() first to get the paths.
+**Step 3 — present:** After generate_comparison returns, tell the user to expand
+the tool output section in their AI client to see the rendered card previews.
+Add a brief note on each candidate (lighting, face visibility, background).
 
-## When you have file paths (staging folder or Cowork folder context)
-
-**Step 1 — list:** Call list_staging_photos() to get file paths.
-
-**Step 2 — preview all:** Call generate_card_preview(name, file_path) for every photo.
-Do this silently — no text output yet.
-
-**Step 3 — compare or recommend:**
-- If there were 1–3 photos: recommend the best one directly with brief reasoning.
-- If there were 4+ photos: call generate_comparison(name, [top3_paths]) RIGHT NOW,
-  before writing any text. Do not describe your picks in words first. The comparison
-  call must happen before your text response.
-
-**Step 4 — recommend:** After the comparison (or after step 2 for 1-3 photos), write
-your recommendation with brief reasoning.
-
-**Step 5 — save:** When the user confirms, call save_photo(name, chosen_path).
+**Step 4 — save:** When the user confirms a choice, call save_photo(name, file_path)
+with the path of the chosen photo. Report the path where it was saved and the
+generate command to rebuild the PDF.
 
 ## Quality criteria
 
-The cards are for a toddler (Lena, ~2 years old) learning letter-sound associations.
-A good card photo: face clearly visible, person recognisable, clean background preferred.
+A good card photo: face clearly visible, person recognisable, clean or simple
+background preferred. Cards are for a toddler learning letter-sound associations.
 
-## UI note
+## Fallback: directory listing
 
-Card preview images appear inside the "Used lettercards integration" section — not
-inline in the chat. Always tell the user: "Click 'Used lettercards integration' above
-to see the card previews."
+If the file picker cannot open (headless / no display), call
+pick_photos(name, directory="/path/to/photos") to list photos from a directory.
 """)
 
-# ── Image processing ─────────────────────────────────────────────────────────
 
-def decode_and_process(image_data: str, size: int = 400) -> Image.Image:
-    """Decode base64 image, correct orientation, crop to square, auto-enhance."""
-    img = Image.open(io.BytesIO(base64.b64decode(image_data)))
+# ── Image processing ──────────────────────────────────────────────────────────
 
-    # Normalise colour mode
+def _normalise(img: Image.Image) -> Image.Image:
+    """Normalise colour mode and correct EXIF orientation."""
     if img.mode in ('RGBA', 'P'):
         bg = Image.new('RGB', img.size, (255, 255, 255))
         img = img.convert('RGBA')
@@ -115,32 +131,52 @@ def decode_and_process(image_data: str, size: int = 400) -> Image.Image:
     elif img.mode != 'RGB':
         img = img.convert('RGB')
 
-    # EXIF orientation
     try:
         from PIL import ExifTags
-        for tag in ExifTags.TAGS:
-            if ExifTags.TAGS[tag] == 'Orientation':
-                break
+        orientation_tag = next(
+            tag for tag, name in ExifTags.TAGS.items() if name == 'Orientation'
+        )
         exif = img._getexif()
         if exif:
-            val = exif.get(tag)
+            val = exif.get(orientation_tag)
             if val == 3:   img = img.rotate(180, expand=True)
             elif val == 6: img = img.rotate(270, expand=True)
             elif val == 8: img = img.rotate(90,  expand=True)
     except Exception:
         pass
 
+    return img
+
+
+def _crop_and_enhance(img: Image.Image, size: int = 400) -> Image.Image:
+    """Crop to square, resize, auto-enhance."""
     w, h = img.size
     if h > w:
-        img = img.crop((0, 0, w, w))          # portrait: top crop
+        img = img.crop((0, 0, w, w))               # portrait: top crop
     else:
         s = min(w, h)
         img = img.crop(((w-s)//2, (h-s)//2, (w+s)//2, (h+s)//2))  # landscape: centre
-
     img = img.resize((size, size), Image.LANCZOS)
     img = ImageOps.autocontrast(img, cutoff=2)
     img = ImageEnhance.Sharpness(img).enhance(1.3)
     return img
+
+
+def load_and_process(file_path: str, size: int = 400) -> Image.Image:
+    """Load from file, correct orientation, crop to square, auto-enhance."""
+    img = Image.open(Path(file_path).expanduser())
+    return _crop_and_enhance(_normalise(img), size)
+
+
+def decode_and_process(image_data: str, size: int = 400) -> Image.Image:
+    """Decode base64 image, correct orientation, crop to square, auto-enhance.
+
+    Kept for backward compatibility and testing.
+    New tools use load_and_process() directly.
+    """
+    import base64
+    img = Image.open(io.BytesIO(base64.b64decode(image_data)))
+    return _crop_and_enhance(_normalise(img), size)
 
 
 def render_card(photo: Image.Image, word: str) -> Image.Image:
@@ -156,40 +192,30 @@ def render_card(photo: Image.Image, word: str) -> Image.Image:
     ImageDraw.Draw(mask).rounded_rectangle([0, 0, CARD_W-1, CARD_H-1], radius=CORNER_R, fill=255)
     card.putalpha(mask)
 
-    # Photo — centred in upper 68% of card
-    pad        = 16
-    img_size   = CARD_W - 2 * pad
-    photo_rs   = photo.resize((img_size, img_size), Image.LANCZOS)
-    photo_y    = int(CARD_H * 0.06)
+    # Photo — upper portion of card
+    pad      = 16
+    img_size = CARD_W - 2 * pad
+    photo_rs = photo.resize((img_size, img_size), Image.LANCZOS)
+    photo_y  = int(CARD_H * 0.06)
     card.paste(photo_rs, (pad, photo_y))
 
     # Word label — first letter in accent colour, rest dark
-    try:
-        font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 28)
-    except Exception:
-        font = ImageFont.load_default()
+    font       = _load_font(28)
+    badge_font = _load_font(14)
+    word_y     = int(CARD_H * 0.80)
+    first      = word[0]
+    rest       = word[1:]
 
-    word_y = int(CARD_H * 0.80)
-    first  = word[0]
-    rest   = word[1:]
-
-    # Measure to centre
     bbox_first = draw.textbbox((0, 0), first, font=font)
     bbox_rest  = draw.textbbox((0, 0), rest,  font=font)
     w_first    = bbox_first[2] - bbox_first[0]
     w_rest     = bbox_rest[2]  - bbox_rest[0]
-    total_w    = w_first + w_rest
-    text_x     = (CARD_W - total_w) // 2
+    text_x     = (CARD_W - w_first - w_rest) // 2
 
-    draw.text((text_x,           word_y), first, fill=color,         font=font)
-    draw.text((text_x + w_first, word_y), rest,  fill=(40, 40, 40),  font=font)
+    draw.text((text_x,           word_y), first, fill=color,        font=font)
+    draw.text((text_x + w_first, word_y), rest,  fill=(40, 40, 40), font=font)
 
-    # Small letter badge — top-left corner
-    try:
-        badge_font = ImageFont.truetype("/System/Library/Fonts/Helvetica.ttc", 14)
-    except Exception:
-        badge_font = ImageFont.load_default()
-
+    # Letter badge — top-left corner
     badge_r = 12
     draw.ellipse([8, 8, 8+badge_r*2, 8+badge_r*2], fill=color)
     bb = draw.textbbox((0, 0), letter, font=badge_font)
@@ -200,134 +226,227 @@ def render_card(photo: Image.Image, word: str) -> Image.Image:
     return card
 
 
-def pil_to_mcp_image(img: Image.Image) -> MCPImage:
+def _pil_to_mcp(img: Image.Image) -> MCPImage:
     buf = io.BytesIO()
     img.save(buf, format='PNG')
     return MCPImage(data=buf.getvalue(), format='png')
 
 
-# ── Tools ────────────────────────────────────────────────────────────────────
+def _open_file_picker(title: str) -> list[str]:
+    """Open a native OS file picker dialog. Returns list of selected paths."""
+    import tkinter as tk
+    from tkinter import filedialog
+
+    root = tk.Tk()
+    root.withdraw()
+    try:
+        root.wm_attributes('-topmost', True)  # bring dialog to front on macOS/Windows
+    except Exception:
+        pass
+    paths = filedialog.askopenfilenames(
+        title=title,
+        filetypes=[
+            ("Images", "*.jpg *.jpeg *.png *.heic *.webp *.JPG *.JPEG *.PNG *.HEIC *.WEBP"),
+            ("All files", "*.*"),
+        ],
+    )
+    root.destroy()
+    return list(paths)
+
+
+# ── Tools ─────────────────────────────────────────────────────────────────────
 
 @mcp.tool()
-def list_staging_photos() -> str:
+def pick_photos(name: str, directory: str | None = None) -> str:
     """
-    List photos available in the staging folder (~/.lettercards/staging/).
-    Call this first to see what photos are available before generating previews.
-    Returns a list of file paths you can pass to generate_card_preview().
+    Select candidate photos for a letter card.
+
+    Opens a native OS file picker dialog so the user can choose photos from
+    anywhere on their computer. Returns a numbered list of absolute paths that
+    you can pass directly to generate_photo_grid() or generate_comparison().
+
+    If the file picker is unavailable (headless environment / no display),
+    provide a directory path and this tool will list all photos found there.
+
+    Args:
+        name:      Person's name — used in the dialog title.
+        directory: Optional. List photos from this directory instead of
+                   opening a picker dialog. Use in headless environments or
+                   when photos are already in a known folder.
     """
-    if not STAGING_DIR.exists():
-        return f"Staging folder does not exist: {STAGING_DIR}\nAsk the user to create it and copy photos there."
-    extensions = {'.jpg', '.jpeg', '.png', '.heic', '.webp'}
-    photos = sorted(p for p in STAGING_DIR.iterdir() if p.suffix.lower() in extensions)
-    if not photos:
-        return f"No photos found in {STAGING_DIR}\nAsk the user to copy photos there first."
-    lines = [f"Found {len(photos)} photo(s) in {STAGING_DIR}:"]
-    for p in photos:
-        size_kb = p.stat().st_size // 1024
-        lines.append(f"  {p}  ({size_kb} KB)")
+    if directory is not None:
+        d = Path(directory).expanduser()
+        if not d.is_dir():
+            return f"Directory not found: {d}"
+        photos = sorted(p for p in d.iterdir() if p.suffix.lower() in SUPPORTED_FORMATS)
+        if not photos:
+            return f"No photos found in {d}."
+        lines = [f"Found {len(photos)} photo(s) in {d}:"]
+        for i, p in enumerate(photos, 1):
+            lines.append(f"  {i}. {p}")
+        return "\n".join(lines)
+
+    try:
+        paths = _open_file_picker(f"Select candidate photos for '{name}'")
+    except Exception as exc:
+        return (
+            f"File picker unavailable ({exc}).\n"
+            f"Use: pick_photos(name='{name}', directory='/path/to/photos')"
+        )
+
+    if not paths:
+        return "No photos selected."
+
+    lines = [f"Selected {len(paths)} photo(s):"]
+    for i, p in enumerate(paths, 1):
+        lines.append(f"  {i}. {p}")
     return "\n".join(lines)
 
 
-def _load_image_data(file_path: str | None, image_data: str | None) -> str:
-    """Return base64 image data from either a file path or inline base64."""
-    if file_path is not None:
-        return base64.b64encode(Path(file_path).read_bytes()).decode()
-    if image_data is not None:
-        return image_data
-    raise ValueError("Provide either file_path or image_data")
+@mcp.tool()
+def generate_photo_grid(file_paths: list[str]) -> MCPImage:
+    """
+    Render a numbered thumbnail grid of the raw candidate photos.
+
+    Use this when 4 or more photos were selected so you can evaluate them
+    with your vision before deciding which 2–3 to render as full lettercards.
+
+    Evaluate the grid and pick the best candidates based on:
+    - Face clearly visible and well-framed
+    - Clean or simple background
+    - Good lighting — no heavy shadows or overexposure
+
+    The numbers in the grid match the position in file_paths (1-indexed).
+    Pass the corresponding paths of your picks to generate_comparison().
+
+    Args:
+        file_paths: Ordered list of absolute paths (as returned by pick_photos).
+    """
+    CELL  = 200
+    PAD   = 8
+    COLS  = 3
+    LABEL = 28
+    font  = _load_font(13)
+    fn    = _load_font(18)
+
+    rows   = (len(file_paths) + COLS - 1) // COLS
+    cell_w = CELL + PAD * 2
+    cell_h = CELL + LABEL + PAD * 2
+    grid   = Image.new('RGB', (COLS * cell_w, rows * cell_h), (230, 228, 215))
+    draw   = ImageDraw.Draw(grid)
+
+    for i, path_str in enumerate(file_paths):
+        col = i % COLS
+        row = i // COLS
+        x   = col * cell_w + PAD
+        y   = row * cell_h + PAD
+        num = str(i + 1)
+
+        try:
+            thumb = _normalise(Image.open(Path(path_str).expanduser()))
+            tw, th = thumb.size
+            s = min(tw, th)
+            thumb = thumb.crop(((tw-s)//2, (th-s)//2, (tw+s)//2, (th+s)//2))
+            thumb = thumb.resize((CELL, CELL), Image.LANCZOS)
+            grid.paste(thumb, (x, y))
+        except Exception:
+            draw.rectangle([x, y, x+CELL, y+CELL], fill=(180, 175, 165))
+            draw.text((x+4, y+4), f"error: {Path(path_str).name}", fill=(80, 70, 60), font=font)
+
+        # Number badge
+        draw.rectangle([x, y, x+24, y+22], fill=DEFAULT_COLOR)
+        draw.text((x+3, y+2), num, fill=(255, 255, 255), font=fn)
+
+        # Filename label
+        short = Path(path_str).name
+        if len(short) > 30:
+            short = short[:27] + '...'
+        draw.text((x+2, y+CELL+4), short, fill=(60, 55, 50), font=font)
+
+        # Border
+        draw.rectangle([x, y, x+CELL, y+CELL], outline=(170, 165, 155))
+
+    return _pil_to_mcp(grid)
 
 
 @mcp.tool()
-def generate_card_preview(
-    name: str,
-    file_path: str | None = None,
-    image_data: str | None = None,
-) -> MCPImage:
+def generate_comparison(name: str, file_paths: list[str]) -> MCPImage:
     """
-    Process a photo and render it as an actual letter card preview.
-    Call this for each candidate photo so the user can compare real cards.
+    Render 2–4 photos as actual lettercards side-by-side for final comparison.
 
-    Provide EITHER file_path (photo on disk) OR image_data (base64 of an inline image).
+    Call this after selecting candidates — either directly from the pick_photos
+    result (1–3 photos) or after narrowing down with generate_photo_grid (4+).
+
+    The returned image shows each photo rendered as a real lettercard so the
+    user can see exactly how it will look when printed.
 
     Args:
-        name: Person's name as it should appear on the card (e.g. 'Tata', 'mama')
-        file_path: Absolute path to the image file on disk
-        image_data: Base64-encoded image (use when photo is inline in the conversation)
+        name:       Person's name as it will appear on the card label.
+        file_paths: 1–4 absolute paths to the candidate photos.
     """
-    data  = _load_image_data(file_path, image_data)
-    photo = decode_and_process(data)
-    card  = render_card(photo, name)
-    return pil_to_mcp_image(card)
-
-
-@mcp.tool()
-def generate_comparison(
-    name: str,
-    file_paths: list[str] | None = None,
-    images_data: list[str] | None = None,
-) -> MCPImage:
-    """
-    Render multiple photos as cards side-by-side for easy comparison.
-    Call this with your top 2–4 candidates after reviewing all previews.
-
-    Provide EITHER file_paths (list of paths on disk) OR images_data (list of base64).
-
-    Args:
-        name: Person's name as it should appear on each card
-        file_paths: List of absolute paths to the candidate photos
-        images_data: List of base64-encoded images (for inline photos)
-    """
-    sources = file_paths if file_paths is not None else images_data
-    if not sources:
-        raise ValueError("Provide either file_paths or images_data")
-
+    PAD   = 12
     cards = []
-    for src in sources:
-        data  = _load_image_data(src if file_paths is not None else None,
-                                  src if images_data is not None else None)
-        photo = decode_and_process(data)
+    for path_str in file_paths:
+        photo = load_and_process(path_str)
         cards.append(render_card(photo, name))
 
-    pad     = 12
-    total_w = sum(c.width for c in cards) + pad * (len(cards) + 1)
-    total_h = max(c.height for c in cards) + pad * 2
+    total_w = sum(c.width for c in cards) + PAD * (len(cards) + 1)
+    total_h = max(c.height for c in cards) + PAD * 2
+    grid    = Image.new('RGB', (total_w, total_h), (230, 228, 215))
 
-    grid = Image.new('RGB', (total_w, total_h), (230, 228, 215))
-    x = pad
+    x = PAD
     for card in cards:
         if card.mode == 'RGBA':
             bg = Image.new('RGB', card.size, (230, 228, 215))
             bg.paste(card, mask=card.split()[-1])
             card = bg
-        grid.paste(card, (x, pad))
-        x += card.width + pad
+        grid.paste(card, (x, PAD))
+        x += card.width + PAD
 
-    return pil_to_mcp_image(grid)
+    return _pil_to_mcp(grid)
 
 
 @mcp.tool()
-def save_photo(
-    name: str,
-    file_path: str | None = None,
-    image_data: str | None = None,
-) -> str:
+def save_photo(name: str, file_path: str) -> str:
     """
     Save the chosen photo to the personal library.
-    Call this once the user has confirmed which photo to use.
 
-    Provide EITHER file_path (photo on disk) OR image_data (base64 of an inline image).
+    Call this once the user has confirmed which photo to use. The photo is
+    processed (orientation-corrected, cropped to square, auto-enhanced) and
+    saved to the personal photo directory.
 
     Args:
-        name: Person's name — saved as {name}.png (e.g. 'tata' → tata.png)
-        file_path: Absolute path to the chosen image file on disk
-        image_data: Base64-encoded image (use when photo is inline in the conversation)
+        name:      Person's name — saved as {name}.png (lowercased).
+        file_path: Absolute path to the chosen photo on disk.
     """
-    data  = _load_image_data(file_path, image_data)
-    photo = decode_and_process(data)
+    photo = load_and_process(file_path)
     PERSONAL_DIR.mkdir(parents=True, exist_ok=True)
     out = PERSONAL_DIR / f"{name.lower()}.png"
     photo.save(out, 'PNG')
-    return f"Saved to {out}. Run: python generate.py --letters {name[0].lower()}"
+    return (
+        f"Saved to {out}\n"
+        f"To regenerate the PDF: lettercards generate --letters {name[0].lower()}"
+    )
+
+
+@mcp.tool()
+def list_staging_photos() -> str:
+    """
+    List photos in the staging folder (~/.lettercards/staging/).
+
+    Fallback for users who prefer copying photos to a staging folder rather
+    than using the file picker. Returns a numbered list of paths you can pass
+    to generate_comparison() or generate_photo_grid().
+    """
+    if not STAGING_DIR.exists():
+        return f"Staging folder not found: {STAGING_DIR}"
+    photos = sorted(p for p in STAGING_DIR.iterdir() if p.suffix.lower() in SUPPORTED_FORMATS)
+    if not photos:
+        return f"No photos in {STAGING_DIR}."
+    lines = [f"Found {len(photos)} photo(s) in {STAGING_DIR}:"]
+    for i, p in enumerate(photos, 1):
+        lines.append(f"  {i}. {p}  ({p.stat().st_size // 1024} KB)")
+    return "\n".join(lines)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
