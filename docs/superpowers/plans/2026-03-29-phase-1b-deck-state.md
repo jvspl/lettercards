@@ -28,7 +28,7 @@
 - Create: `deck_state.py`
 - Create: `tests/test_deck_state.py`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/test_deck_state.py`:
 
@@ -116,7 +116,7 @@ def test_validate_no_warning_when_printed_cards_empty():
     assert warnings == []
 ```
 
-- [ ] **Step 2: Run tests to confirm they fail**
+- [x] **Step 2: Run tests to confirm they fail**
 
 ```bash
 venv/bin/pytest tests/test_deck_state.py -v
@@ -124,7 +124,7 @@ venv/bin/pytest tests/test_deck_state.py -v
 
 Expected: `ModuleNotFoundError: No module named 'deck_state'`
 
-- [ ] **Step 3: Create deck_state.py**
+- [x] **Step 3: Create deck_state.py**
 
 ```python
 """
@@ -200,7 +200,7 @@ def validate_deck_state(state: dict, csv_words: set) -> list:
     return warnings
 ```
 
-- [ ] **Step 4: Run tests to confirm they pass**
+- [x] **Step 4: Run tests to confirm they pass**
 
 ```bash
 venv/bin/pytest tests/test_deck_state.py -v
@@ -208,7 +208,7 @@ venv/bin/pytest tests/test_deck_state.py -v
 
 Expected: All 10 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add deck_state.py tests/test_deck_state.py
@@ -223,7 +223,7 @@ git commit -m "feat: add deck_state module — load and validate deck-state.json
 - Create: `deck-state.example.json`
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Create deck-state.example.json**
+- [x] **Step 1: Create deck-state.example.json**
 
 This file documents the schema and ships as a reference. It is NOT the actual user file.
 
@@ -302,7 +302,7 @@ This file documents the schema and ships as a reference. It is NOT the actual us
 }
 ```
 
-- [ ] **Step 2: Add deck-state.json to .gitignore**
+- [x] **Step 2: Add deck-state.json to .gitignore**
 
 Current `.gitignore` contents:
 ```
@@ -330,7 +330,7 @@ deck-state.json
 .tmp/
 ```
 
-- [ ] **Step 3: Verify deck-state.json is ignored**
+- [x] **Step 3: Verify deck-state.json is ignored**
 
 ```bash
 echo '{}' > deck-state.json
@@ -343,7 +343,7 @@ Expected: `deck-state.json` does NOT appear in git status output (it's ignored).
 rm deck-state.json
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add deck-state.example.json .gitignore
@@ -361,7 +361,7 @@ git commit -m "chore: add deck-state.example.json schema reference and gitignore
 The `--status` flag prints a deck summary and exits without generating a PDF.
 On every normal run, if `deck-state.json` exists, validate it and print any warnings.
 
-- [ ] **Step 1: Write the failing integration tests**
+- [x] **Step 1: Write the failing integration tests**
 
 Append to `tests/test_deck_state.py`:
 
@@ -444,7 +444,7 @@ def test_startup_validation_no_warning_when_state_missing(tmp_path):
     assert "deck_protocol" not in result.stderr
 ```
 
-- [ ] **Step 2: Run tests to confirm they fail**
+- [x] **Step 2: Run tests to confirm they fail**
 
 ```bash
 venv/bin/pytest tests/test_deck_state.py::test_status_flag_prints_summary -v
@@ -452,7 +452,7 @@ venv/bin/pytest tests/test_deck_state.py::test_status_flag_prints_summary -v
 
 Expected: FAIL — `generate.py` doesn't accept `--deck-state` or `--status` yet.
 
-- [ ] **Step 3: Modify generate.py**
+- [x] **Step 3: Modify generate.py**
 
 Add the import at the top of the imports block (after `from PIL import Image`):
 
@@ -635,7 +635,7 @@ if __name__ == '__main__':
     main()
 ```
 
-- [ ] **Step 4: Run all tests**
+- [x] **Step 4: Run all tests**
 
 ```bash
 venv/bin/pytest tests/test_deck_state.py -v
@@ -651,7 +651,7 @@ venv/bin/pytest tests/ -v
 
 Expected: All tests pass.
 
-- [ ] **Step 5: Manual smoke test**
+- [x] **Step 5: Manual smoke test**
 
 ```bash
 python generate.py --status
@@ -674,7 +674,7 @@ Expected: Shows counts of active cards, printed cards, sessions, and next batch.
 rm deck-state.json
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add generate.py tests/test_deck_state.py

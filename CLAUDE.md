@@ -4,6 +4,8 @@ Dutch letter-learning card generator for Lena (almost 2). Produces A4 PDFs with 
 
 **Architecture:** See [`docs/architecture.md`](docs/architecture.md) for the three-layer design and migration path. ADRs in [`docs/adr/`](docs/adr/). Design reference in [`DESIGN.md`](DESIGN.md).
 
+**Primary CLI:** Use `lettercards` for normal execution flows. Legacy scripts (`generate.py`, `process_photo.py`, `pictogram_workflow.py`) remain available during the transition, but new docs and operator guidance should prefer the unified CLI.
+
 ## Personas
 
 Conflict priority: **Lena > Jeroen/Pilar > Pedagogue > Designer > Engineer > Tester > Security > Product Owner**
@@ -67,7 +69,7 @@ Always separate:
 - **PR preparation** (code, commit(s), PR title/body draft)
 - **PR publication** (actual PR opened on GitHub)
 
-**Tests:** Run both suites before every PR touching `generate.py`, `process_photo.py`, or `.claude/hooks/`. For visual changes also run `python generate.py --letters d,e,w --safe-letters-only` and inspect the PDF.
+**Tests:** Run both suites before every PR touching `generate.py`, `process_photo.py`, `pictogram_workflow.py`, `lettercards/`, or `.claude/hooks/`. For visual changes also run `lettercards generate --letters d,e,w --safe-letters-only` and inspect the PDF.
 
 **PR scope:** Check `gh pr list` + `git branch` before starting. Same topic → same branch. Different topic → new branch + new PR. Unsure → ask the operator.
 

@@ -43,7 +43,6 @@ except ImportError:
 
 STAGING_DIR = Path.home() / '.lettercards' / 'staging'
 IMAGES_DIR = Path(__file__).parent / 'images'
-CARDS_CSV = Path(__file__).parent / 'deck.csv'
 SOURCES_MD = Path(__file__).parent / 'images' / 'SOURCES.md'
 
 # Style guidance for consistent illustrations
@@ -68,12 +67,20 @@ GRID_LAYOUTS = {
 SUPPORTED_FORMATS = {'.jpg', '.jpeg', '.png', '.heic', '.webp'}
 
 
+def get_cards_csv():
+    """Resolve the active CSV during the cards.csv -> deck.csv transition."""
+    deck_csv = Path(__file__).parent / 'deck.csv'
+    if deck_csv.exists():
+        return deck_csv
+    return Path(__file__).parent / 'cards.csv'
+
+
 # ── Status Command ─────────────────────────────────────────────────────────
 
 def load_cards():
     """Load cards from CSV, return list of (letter, word, image, personal)."""
     cards = []
-    with open(CARDS_CSV, 'r') as f:
+    with open(get_cards_csv(), 'r') as f:
         reader = csv.DictReader(f)
         for row in reader:
             letter = row['letter'].strip()
@@ -537,7 +544,7 @@ def cmd_split(args):
 
 # ── Main ───────────────────────────────────────────────────────────────────
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(
         description="Pictogram workflow for letter cards",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -568,17 +575,18 @@ def main():
     split_parser.add_argument('--remove-bg', action='store_true',
                               help='Remove white background (opt-in). Use on fresh ChatGPT images only.')
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if args.command == 'status':
-        cmd_status(args)
+        return cmd_status(args) or 0
     elif args.command == 'prompt':
-        cmd_prompt(args)
+        return cmd_prompt(args) or 0
     elif args.command == 'split':
-        cmd_split(args)
+        return cmd_split(args) or 0
     else:
         parser.print_help()
+        return 0
 
 
 if __name__ == '__main__':
-    main()
+    raise SystemExit(main())

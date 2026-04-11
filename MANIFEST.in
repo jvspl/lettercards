@@ -1,0 +1,3 @@
+include deck.csv
+recursive-include images *.png *.md
+recursive-include fonts *.ttf *.otf
