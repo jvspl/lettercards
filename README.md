@@ -32,11 +32,25 @@ See [CLAUDE.md](CLAUDE.md) for full documentation:
 
 ## Developer setup
 
-After cloning, you need two things beyond the Quick Start above: a Python virtual environment (already covered) and a GitHub CLI token scoped to this repo only.
+After cloning, the baseline requirement is a Python virtual environment (already covered in Quick Start).
 
-### GitHub CLI — fine-grained PAT
+GitHub tooling is environment-dependent:
+- **Desktop/local workflows (human devs, Claude Code Desktop):** `gh` is recommended.
+- **Web/cloud agent workflows (Codex Cloud or similar):** built-in integrations may replace `gh`.
 
-The `gh` CLI must use a **fine-grained personal access token** scoped to this repository only. A classic OAuth token grants full admin access (merge bypassing branch protection, delete repo, manage webhooks) — do not use one.
+### GitHub access modes (tool-agnostic)
+
+Use this order of preference:
+
+1. **Built-in platform integration** (MCP/server tools) when available.
+2. **`gh` CLI** for local/desktop workflows.
+3. **Repository-local fallback** (no GitHub API) for analysis/docs work when remote access is unavailable.
+
+This keeps the repo usable whether work is done by Codex, Claude Code, or human developers, and whether the runtime is desktop or web/cloud.
+
+### GitHub CLI — fine-grained PAT (desktop/local mode)
+
+If you are using the `gh` CLI, use a **fine-grained personal access token** scoped to this repository only. A classic OAuth token grants full admin access (merge bypassing branch protection, delete repo, manage webhooks) — do not use one.
 
 **Create the token:**
 
