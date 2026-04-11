@@ -55,29 +55,53 @@ The `gh` CLI must use a **fine-grained personal access token** scoped to this re
 
 5. Generate the token and copy it.
 
-**Configure a separate gh config dir** so Claude's token doesn't overwrite your personal one.
+**Set up the token in two steps.**
 
-Create `.claude/settings.local.json` in the repo root (this file is gitignored — each developer has their own):
+1. Create the gh config directory for Claude (one-time, per machine):
+
+```bash
+mkdir -p ~/.config/gh-claude
+```
+
+2. Create `.claude/settings.local.json` in the repo root (gitignored — each developer has their own):
 
 ```json
 {
   "env": {
-    "GH_CONFIG_DIR": "/Users/yourname/.config/gh-claude"
+    "GH_TOKEN": "github_pat_YOUR_TOKEN_HERE"
   }
 }
 ```
 
-**Authenticate into that config dir:**
-
-```bash
-echo "YOUR_TOKEN" | GH_CONFIG_DIR=~/.config/gh-claude gh auth login --with-token
-```
+`GH_TOKEN` is read by `gh` directly and takes precedence over any stored credential, so no `gh auth login` is needed. The shared `.claude/settings.json` already sets `GH_CONFIG_DIR=~/.config/gh-claude` so `gh` reads its config from a sandbox-accessible path rather than from `~/.config/gh/`.
 
 **Verify:**
 
 ```bash
-GH_CONFIG_DIR=~/.config/gh-claude gh auth status
-GH_CONFIG_DIR=~/.config/gh-claude gh pr list
+gh pr list
 ```
 
-`gh auth status` should show the token is scoped to this repo. `gh pr list` should work. `gh pr merge --admin` should now fail with a 403. Your regular `gh` CLI is unaffected.
+Should return open PRs without errors. Your personal `gh` config is unaffected — `GH_TOKEN` and `GH_CONFIG_DIR` only apply inside Claude Code sessions in this repo.
+
+### Sandbox
+
+Claude Code runs sandboxed by default (configured in `.claude/settings.json`). The sandbox uses macOS Seatbelt to enforce:
+
+- **Filesystem isolation**: Claude can only read/write the project directory. Reads from `~/` are blocked — this prevents accidental access to personal photos, SSH keys, credentials, etc.
+- **Network isolation**: Outbound connections are restricted to `github.com`, `api.github.com`, and `api.anthropic.com`. Attempts to reach other hosts prompt for confirmation.
+- **Weaker network isolation** (`enableWeakerNetworkIsolation: true`): allows the macOS system TLS trust service, which is needed by Go binaries like `gh` for certificate verification. This does not open additional network hosts — only allows the local trust daemon call.
+
+**Developer impact:**
+
+| Scenario | Works? | Notes |
+|---|---|---|
+| `venv/bin/pytest tests/` | Yes | All files in project dir |
+| `bash tests/test_hooks.sh` | Yes | All files in project dir |
+| `python generate.py --safe-letters-only` | Yes | No personal photos needed |
+| `python generate.py` with personal letters | Only if run directly | Claude cannot read `~/` — run this yourself |
+| `git` commands | Yes | Runs via normal permission flow |
+| `gh` commands | Yes, with setup above | Needs `GH_TOKEN` + `GH_CONFIG_DIR` (both set by settings files) |
+
+**What is not sandboxed**: Claude's `Read`, `Edit`, and `Write` file tools use the Claude Code permissions system directly (not the OS sandbox). These are governed by the `permissions.allow/deny` rules in `.claude/settings.json`.
+
+The `bypassPermissions` mode is permanently disabled (`disableBypassPermissionsMode: "disable"`), so there is no way to run Claude without permission checks in this project.

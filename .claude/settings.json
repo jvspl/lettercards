@@ -1,4 +1,8 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "GH_CONFIG_DIR": "~/.config/gh-claude"
+  },
   "permissions": {
     "allow": [
       "Bash(gh issue view *)",
@@ -7,7 +11,30 @@
       "Bash(gh pr list *)",
       "Bash(gh pr checks *)",
       "Bash(gh api user *)"
-    ]
+    ],
+    "disableBypassPermissionsMode": "disable",
+    "defaultMode": "plan"
+  },
+  "sandbox": {
+    "enabled": true,
+    "enableWeakerNetworkIsolation": true,
+    "allowUnsandboxedCommands": false,
+    "excludedCommands": ["git", "gh"],
+    "ignoreViolations": {
+      "git": [".git"]
+    },
+    "filesystem": {
+      "allowWrite": [".", ".git"],
+      "denyRead": ["~/"],
+      "allowRead": [".", "~/.gitconfig", "~/.config/git", "~/.config/gh-claude"]
+    },
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "api.github.com",
+        "api.anthropic.com"
+      ]
+    }
   },
   "hooks": {
     "SessionStart": [
