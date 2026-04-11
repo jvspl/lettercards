@@ -15,12 +15,33 @@ Output is a printable A4 PDF with 9 cards per page.
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+pip install -e .
 
 # Generate cards
-python generate.py
+lettercards generate
 ```
 
 This creates `letterkaarten.pdf` ready for printing.
+
+Legacy scripts still work during the transition:
+
+```bash
+python generate.py
+python process_photo.py --list
+python pictogram_workflow.py status
+```
+
+## CLI
+
+```bash
+lettercards generate
+lettercards generate --letters a,d,o
+lettercards status
+lettercards photo process oma
+lettercards pictogram prompt appel auto deur
+lettercards pictogram split appel auto deur --grid 3x1
+lettercards deck check
+```
 
 ## Documentation
 
