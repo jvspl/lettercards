@@ -17,18 +17,7 @@ git clone git@github.com:<you>/my-family-lettercards-deck.git
 cd my-family-lettercards-deck
 ```
 
-## 2) Copy the starter deck from this repo
-
-From inside your deck repo, copy the starter deck files from a local checkout of `lettercards`:
-
-```bash
-cp /path/to/lettercards/starter-deck/deck.csv ./deck.csv
-cp -R /path/to/lettercards/starter-deck/images ./images
-```
-
-You now have a fully working starter deck that can generate cards immediately.
-
-## 3) Install the generator (recommended for this branch)
+## 2) Install the generator (recommended for this branch)
 
 Keep generator code versioned separately from your deck content:
 
@@ -44,6 +33,24 @@ If you prefer the packaged release instead of local source:
 
 ```bash
 pip install lettercards
+```
+
+## 3) Initialize the starter deck
+
+From inside your deck repo, initialize starter content with the CLI:
+
+```bash
+lettercards deck init
+```
+
+This creates:
+- `./deck.csv`
+- `./images/`
+
+If you need to reset an existing deck, use:
+
+```bash
+lettercards deck init --force
 ```
 
 ## 4) Generate using your deck repo files
@@ -70,7 +77,7 @@ python -m lettercards deck check --csv ./deck.csv
 
 ### Quick personal-card smoke test
 
-After copying starter files, add one personal card and verify:
+After initializing starter files, add one personal card and verify:
 
 ```bash
 cp ./images/appel.png ./images/oma.png

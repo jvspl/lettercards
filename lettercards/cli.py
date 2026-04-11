@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 from pathlib import Path
 
 import generate
@@ -142,6 +143,42 @@ def cmd_deck_check(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_deck_init(args: argparse.Namespace) -> int:
+    base_dir = Path(generate.__file__).resolve().parent
+    starter_dir = base_dir / "starter-deck"
+    starter_csv = starter_dir / "deck.csv"
+    starter_images = starter_dir / "images"
+
+    if not starter_csv.exists() or not starter_images.exists():
+        print(f"Error: starter deck assets not found in {starter_dir}")
+        return 1
+
+    target_dir = Path(args.path).resolve()
+    target_csv = target_dir / "deck.csv"
+    target_images = target_dir / "images"
+    target_dir.mkdir(parents=True, exist_ok=True)
+
+    if target_csv.exists() and not args.force:
+        print(f"Error: {target_csv} already exists. Use --force to overwrite.")
+        return 1
+    if target_images.exists() and not args.force:
+        print(f"Error: {target_images} already exists. Use --force to overwrite.")
+        return 1
+
+    if args.force and target_csv.exists():
+        target_csv.unlink()
+    if args.force and target_images.exists():
+        shutil.rmtree(target_images)
+
+    shutil.copy2(starter_csv, target_csv)
+    shutil.copytree(starter_images, target_images)
+
+    print(f"Initialized starter deck in {target_dir}")
+    print(f"- {target_csv}")
+    print(f"- {target_images}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Unified CLI for lettercards workflows")
     subparsers = parser.add_subparsers(dest="command")
@@ -203,6 +240,15 @@ def build_parser() -> argparse.ArgumentParser:
     deck_check_parser.add_argument("--deck-state", type=str, default=None, help="Path to deck-state.json")
     deck_check_parser.add_argument("--personal-dir", type=str, default=None, help="Directory for personal photos")
     deck_check_parser.set_defaults(func=cmd_deck_check)
+
+    deck_init_parser = deck_subparsers.add_parser(
+        "init",
+        help="Initialize a starter deck in a target directory",
+        description="Initialize a starter deck in a target directory",
+    )
+    deck_init_parser.add_argument("--path", type=str, default=".", help="Target directory (default: current directory)")
+    deck_init_parser.add_argument("--force", action="store_true", help="Overwrite existing deck.csv/images if present")
+    deck_init_parser.set_defaults(func=cmd_deck_init)
 
     return parser
 

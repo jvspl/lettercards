@@ -135,6 +135,6 @@ That guide now includes a personal-card smoke test and a `python -m lettercards`
 
 Quick flow:
 1. Create your own deck repo.
-2. Copy `starter-deck/` into it.
-3. Install `lettercards` (released or editable).
+2. Install `lettercards` (released or editable).
+3. Run `lettercards deck init` inside your deck repo.
 4. Run `lettercards generate --csv ./deck.csv`.

@@ -51,6 +51,12 @@ def test_deck_check_help_works():
     assert "Validate deck integrity" in result.stdout
 
 
+def test_deck_init_help_works():
+    result = run_cli("deck", "init", "--help")
+    assert result.returncode == 0
+    assert "Initialize a starter deck" in result.stdout
+
+
 def test_status_command_runs_with_explicit_paths(tmp_path):
     csv_file = tmp_path / "deck.csv"
     csv_file.write_text(
@@ -81,3 +87,17 @@ def test_deck_check_reports_missing_images(tmp_path):
     result = run_cli("deck", "check", "--csv", str(csv_file))
     assert result.returncode != 0
     assert "Missing image for 'appel'" in result.stdout
+
+
+def test_deck_init_creates_starter_files(tmp_path):
+    result = run_cli("deck", "init", "--path", str(tmp_path))
+    assert result.returncode == 0
+    assert (tmp_path / "deck.csv").exists()
+    assert (tmp_path / "images").exists()
+
+
+def test_deck_init_refuses_to_overwrite_without_force(tmp_path):
+    (tmp_path / "deck.csv").write_text("existing", encoding="utf-8")
+    result = run_cli("deck", "init", "--path", str(tmp_path))
+    assert result.returncode != 0
+    assert "Use --force to overwrite" in result.stdout
