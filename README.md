@@ -122,3 +122,19 @@ GH_CONFIG_DIR=~/.config/gh-claude gh pr list
 ```
 
 `gh auth status` should show the token is scoped to this repo. `gh pr list` should work. `gh pr merge --admin` should now fail with a 403. Your regular `gh` CLI is unaffected.
+
+
+## Starter deck and separate deck repos (Issue #105)
+
+This repository now includes a ready-to-copy starter deck in [`starter-deck/`](starter-deck/) with a complete non-personal deck CSV and shared image assets:
+- `starter-deck/deck.csv`
+- `starter-deck/images/`
+
+If you want a separate repository for your own family deck while keeping `lettercards` as the shared engine, follow [`docs/starter-deck-setup.md`](docs/starter-deck-setup.md).
+That guide now includes a personal-card smoke test and a `python -m lettercards` fallback if the CLI entrypoint is unavailable.
+
+Quick flow:
+1. Create your own deck repo.
+2. Copy `starter-deck/` into it.
+3. Install `lettercards` (released or editable).
+4. Run `lettercards generate --csv ./deck.csv`.

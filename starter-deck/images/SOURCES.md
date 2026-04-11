@@ -1,6 +1,6 @@
 # Image Sources
 
-This file tracks the source, copyright status, and generation details for all images in `images/`.
+This file tracks the source, copyright status, and generation details for all images in `starter-deck/images/`.
 
 **Note:** Personal/private images (family photos etc.) are stored locally in `~/.lettercards/personal/` and are not tracked here.
 
