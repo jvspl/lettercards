@@ -6,7 +6,14 @@ from pathlib import Path
 import generate
 import pictogram_workflow
 import process_photo
-from deck_state import read_deck_state, validate_deck_state
+from deck_state import (
+    append_review_session,
+    default_deck_state,
+    read_deck_state,
+    summarize_learning_progress,
+    validate_deck_state,
+    write_deck_state,
+)
 
 
 def default_csv_argument() -> str:
@@ -142,6 +149,59 @@ def cmd_deck_check(args: argparse.Namespace) -> int:
     return 0
 
 
+def _parse_observations(values: list[str]) -> list[dict]:
+    observations: list[dict] = []
+    for value in values:
+        parts = value.split(":", 2)
+        if len(parts) < 2:
+            continue
+        card = parts[0].strip()
+        reaction = parts[1].strip().lower()
+        notes = parts[2].strip() if len(parts) == 3 else ""
+        if card and reaction:
+            observations.append({"card": card, "reaction": reaction, "notes": notes})
+    return observations
+
+
+def cmd_deck_review_log(args: argparse.Namespace) -> int:
+    deck_state_path = Path(args.deck_state)
+    state, state_error = read_deck_state(deck_state_path)
+    if state_error:
+        print(f"Error: could not read deck-state.json: {state_error}")
+        return 1
+    if state is None:
+        state = default_deck_state()
+
+    session = {
+        "duration_minutes": args.duration,
+        "letters_played": [letter.strip().lower() for letter in args.letters.split(",") if letter.strip()],
+        "observations": _parse_observations(args.observe or []),
+    }
+    append_review_session(state, session, date=args.date)
+    write_deck_state(deck_state_path, state)
+    print(f"Logged review session on {args.date} with {len(session['observations'])} observations.")
+    return 0
+
+
+def cmd_deck_review_summary(args: argparse.Namespace) -> int:
+    deck_state_path = Path(args.deck_state)
+    state, state_error = read_deck_state(deck_state_path)
+    if state_error:
+        print(f"Error: could not read deck-state.json: {state_error}")
+        return 1
+    if state is None:
+        print(f"No deck-state.json found at {deck_state_path}")
+        return 1
+
+    summary = summarize_learning_progress(state)
+    print("LEARNING PROGRESS SUMMARY")
+    print(f"Recognized/mastered: {', '.join(summary['recognized_or_mastered']) or '-'}")
+    print(f"In progress: {', '.join(summary['in_progress']) or '-'}")
+    print(f"Confused recently: {', '.join(summary['confused_recently']) or '-'}")
+    print(f"Recommendation: {summary['recommendation']}")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Unified CLI for lettercards workflows")
     subparsers = parser.add_subparsers(dest="command")
@@ -203,6 +263,26 @@ def build_parser() -> argparse.ArgumentParser:
     deck_check_parser.add_argument("--deck-state", type=str, default=None, help="Path to deck-state.json")
     deck_check_parser.add_argument("--personal-dir", type=str, default=None, help="Directory for personal photos")
     deck_check_parser.set_defaults(func=cmd_deck_check)
+
+    review_parser = deck_subparsers.add_parser("review", help="Review session commands")
+    review_subparsers = review_parser.add_subparsers(dest="review_command")
+
+    review_log_parser = review_subparsers.add_parser("log", help="Log a review session")
+    review_log_parser.add_argument("--deck-state", type=str, required=True, help="Path to deck-state.json")
+    review_log_parser.add_argument("--date", type=str, required=True, help="Session date (YYYY-MM-DD)")
+    review_log_parser.add_argument("--duration", type=int, default=0, help="Session duration in minutes")
+    review_log_parser.add_argument("--letters", type=str, default="", help="Comma-separated letters played")
+    review_log_parser.add_argument(
+        "--observe",
+        action="append",
+        default=[],
+        help="Observation as 'card:reaction[:notes]' (repeatable)",
+    )
+    review_log_parser.set_defaults(func=cmd_deck_review_log)
+
+    review_summary_parser = review_subparsers.add_parser("summary", help="Show learning progress summary")
+    review_summary_parser.add_argument("--deck-state", type=str, required=True, help="Path to deck-state.json")
+    review_summary_parser.set_defaults(func=cmd_deck_review_summary)
 
     return parser
 
