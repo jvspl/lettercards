@@ -103,7 +103,7 @@ def cmd_deck_check(args: argparse.Namespace) -> int:
     csv_path = base_dir / csv_arg
     deck_state_path = Path(args.deck_state) if args.deck_state else csv_path.parent / "deck-state.json"
     personal_dir = generate.get_personal_images_dir(args.personal_dir)
-    images_dir = base_dir / "images"
+    images_dirs = [csv_path.parent / "images", base_dir / "starter-deck" / "images", base_dir / "images"]
 
     issues: list[str] = []
 
@@ -124,7 +124,7 @@ def cmd_deck_check(args: argparse.Namespace) -> int:
         issues.extend(validate_deck_state(state, csv_words))
 
     for card in cards:
-        image_path = generate.get_image_path(card, images_dir, personal_dir)
+        image_path = generate.get_image_path(card, images_dirs, personal_dir)
         if image_path is None:
             issues.append(f"Missing image for '{card['word']}' ({card['image'] or 'no image specified'}).")
 

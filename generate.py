@@ -365,15 +365,21 @@ EMOJI_MAP = {
 }
 
 
-def generate_placeholder_images(cards, images_dir):
+def generate_placeholder_images(cards, images_dir, existing_image_dirs=None):
     """Generate simple placeholder PNG images for cards that don't have one yet."""
     from PIL import Image, ImageDraw, ImageFont
 
     os.makedirs(images_dir, exist_ok=True)
+    existing_dirs = existing_image_dirs if existing_image_dirs is not None else [images_dir]
 
     for card in cards:
         img_path = os.path.join(images_dir, card['image']) if card['image'] else None
-        if not img_path or os.path.exists(img_path):
+        image_exists = any(
+            os.path.exists(os.path.join(image_dir, card['image']))
+            for image_dir in existing_dirs
+        ) if card['image'] else False
+
+        if not img_path or image_exists:
             continue
         if card['personal'] == 'yes':
             continue  # Don't generate placeholders for personal photos
@@ -464,7 +470,7 @@ def load_all_deck_words(csv_path):
 
 
 def get_image_path(card, images_dir, personal_dir):
-    """Get the image path for a card, checking personal dir first for personal photos."""
+    """Get the image path for a card, checking personal dir first and then image dirs."""
     if not card['image']:
         return None
 
@@ -473,12 +479,13 @@ def get_image_path(card, images_dir, personal_dir):
         personal_path = personal_dir / card['image']
         if personal_path.exists():
             return str(personal_path)
-        # Fall back to images/ if not found in personal dir
+        # Fall back to shared image dirs if not found in personal dir
 
-    # Check images/ folder
-    images_path = os.path.join(images_dir, card['image'])
-    if os.path.exists(images_path):
-        return images_path
+    image_dirs = images_dir if isinstance(images_dir, (list, tuple)) else [images_dir]
+    for image_dir in image_dirs:
+        images_path = os.path.join(image_dir, card['image'])
+        if os.path.exists(images_path):
+            return images_path
 
     return None
 
@@ -615,7 +622,10 @@ def main(argv=None):
 
     base_dir = Path(__file__).parent
     csv_path = resolve_default_csv_path(base_dir, args.csv)
-    images_dir = base_dir / "images"
+    deck_images_dir = csv_path.parent / "images"
+    fallback_images_dir = base_dir / "images"
+    starter_images_dir = base_dir / "starter-deck" / "images"
+    image_dirs = [deck_images_dir, starter_images_dir, fallback_images_dir]
     personal_dir = get_personal_images_dir(args.personal_dir)
     output_path = base_dir / args.output
     deck_state_path = Path(args.deck_state) if args.deck_state else csv_path.parent / "deck-state.json"
@@ -660,12 +670,12 @@ def main(argv=None):
     # Generate placeholder images
     if not args.no_placeholders:
         print("\nGenerating placeholder images...")
-        generate_placeholder_images(cards, images_dir)
+        generate_placeholder_images(cards, deck_images_dir, existing_image_dirs=image_dirs)
 
     # Generate PDF
     print(f"\nPersonal images dir: {personal_dir}")
     print("Generating PDF...")
-    generate_pdf(cards, output_path, images_dir, personal_dir, available_fonts, args.font)
+    generate_pdf(cards, output_path, image_dirs, personal_dir, available_fonts, args.font)
     return 0
 
 
