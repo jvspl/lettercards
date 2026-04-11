@@ -51,6 +51,18 @@ def test_deck_check_help_works():
     assert "Validate deck integrity" in result.stdout
 
 
+def test_deck_review_log_help_works():
+    result = run_cli("deck", "review", "log", "--help")
+    assert result.returncode == 0
+    assert "--observe" in result.stdout
+
+
+def test_deck_review_summary_help_works():
+    result = run_cli("deck", "review", "summary", "--help")
+    assert result.returncode == 0
+    assert "--deck-state" in result.stdout
+
+
 def test_status_command_runs_with_explicit_paths(tmp_path):
     csv_file = tmp_path / "deck.csv"
     csv_file.write_text(
@@ -81,3 +93,53 @@ def test_deck_check_reports_missing_images(tmp_path):
     result = run_cli("deck", "check", "--csv", str(csv_file))
     assert result.returncode != 0
     assert "Missing image for 'appel'" in result.stdout
+
+
+def test_deck_review_log_creates_state_and_updates_progress(tmp_path):
+    deck_state = tmp_path / "deck-state.json"
+    result = run_cli(
+        "deck",
+        "review",
+        "log",
+        "--deck-state",
+        str(deck_state),
+        "--date",
+        "2026-04-11",
+        "--duration",
+        "15",
+        "--letters",
+        "a,d",
+        "--observe",
+        "appel:positive:points and smiles",
+        "--observe",
+        "deur:confused:mixes with dier",
+    )
+    assert result.returncode == 0
+    state = json.loads(deck_state.read_text(encoding="utf-8"))
+    assert state["sessions"][-1]["type"] == "review"
+    assert "a" in state["progress"]["letters"]
+    assert "d" in state["progress"]["letters"]
+
+
+def test_deck_review_summary_outputs_recommendation(tmp_path):
+    deck_state = tmp_path / "deck-state.json"
+    deck_state.write_text(
+        json.dumps(
+            {
+                "deck_protocol": "1.0",
+                "printed_cards": [],
+                "sessions": [],
+                "progress": {
+                    "letters": {
+                        "a": {"status": "recognized", "observations": [{"note": "good"}]},
+                        "d": {"status": "learning", "observations": [{"note": "confused"}]},
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    result = run_cli("deck", "review", "summary", "--deck-state", str(deck_state))
+    assert result.returncode == 0
+    assert "LEARNING PROGRESS SUMMARY" in result.stdout
+    assert "Recommendation:" in result.stdout

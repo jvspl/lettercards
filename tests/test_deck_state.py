@@ -1,7 +1,14 @@
 """Tests for deck_state.py — load and validate deck-state.json."""
 import json
 
-from deck_state import load_deck_state, read_deck_state, validate_deck_state
+from deck_state import (
+    append_review_session,
+    load_deck_state,
+    read_deck_state,
+    summarize_learning_progress,
+    update_progress_from_review,
+    validate_deck_state,
+)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -103,6 +110,50 @@ def test_validate_warns_when_printed_card_entry_malformed():
     warnings = validate_deck_state(state, {"wolf"})
     assert any("printed_cards[0]" in w for w in warnings)
     assert any("printed_cards[1]" in w for w in warnings)
+
+
+def test_append_review_session_appends_and_updates_progress():
+    state = {"deck_protocol": "1.0", "sessions": []}
+    session = {
+        "duration_minutes": 12,
+        "letters_played": ["a"],
+        "observations": [{"card": "appel", "reaction": "positive", "notes": "pointed quickly"}],
+    }
+    append_review_session(state, session, date="2026-04-11")
+    assert len(state["sessions"]) == 1
+    assert state["sessions"][0]["type"] == "review"
+    assert state["progress"]["letters"]["a"]["status"] in {"introduced", "learning"}
+
+
+def test_update_progress_from_review_promotes_after_positive_evidence():
+    state = {"deck_protocol": "1.0"}
+    session = {"letters_played": ["a"], "observations": [{"card": "appel", "reaction": "positive"}]}
+    update_progress_from_review(state, session, date="2026-04-11")
+    update_progress_from_review(state, session, date="2026-04-12")
+    assert state["progress"]["letters"]["a"]["status"] in {"learning", "recognized", "mastered"}
+    assert state["progress"]["letters"]["a"]["evidence_count"] >= 2
+
+
+def test_update_progress_from_review_can_step_back_on_confusion():
+    state = {"progress": {"letters": {"w": {"status": "recognized", "observations": [], "evidence_count": 3}}}}
+    session = {"letters_played": ["w"], "observations": [{"card": "wolf", "reaction": "confused"}]}
+    update_progress_from_review(state, session, date="2026-04-11")
+    assert state["progress"]["letters"]["w"]["status"] in {"learning", "introduced", "not_introduced"}
+
+
+def test_summarize_learning_progress_returns_recommendation():
+    state = {
+        "progress": {
+            "letters": {
+                "a": {"status": "recognized", "observations": [{"date": "2026-04-11", "note": "great"}]},
+                "d": {"status": "learning", "observations": [{"date": "2026-04-11", "note": "confused on deur"}]},
+            }
+        }
+    }
+    summary = summarize_learning_progress(state)
+    assert "a" in summary["recognized_or_mastered"]
+    assert "d" in summary["in_progress"]
+    assert summary["recommendation"]
 
 
 # ── generate.py integration ───────────────────────────────────────────────────
