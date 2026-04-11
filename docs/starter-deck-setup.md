@@ -28,21 +28,22 @@ cp -R /path/to/lettercards/starter-deck/images ./images
 
 You now have a fully working starter deck that can generate cards immediately.
 
-## 3) Install the generator
+## 3) Install the generator (recommended for this branch)
 
 Keep generator code versioned separately from your deck content:
 
 ```bash
+git clone git@github.com:<you-or-org>/lettercards.git
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -U pip
-pip install lettercards
+pip install -e /path/to/lettercards
 ```
 
-For local development against a checked-out copy of `lettercards`:
+If you prefer the packaged release instead of local source:
 
 ```bash
-pip install -e /path/to/lettercards
+pip install lettercards
 ```
 
 ## 4) Generate using your deck repo files
@@ -54,11 +55,29 @@ lettercards generate --csv ./deck.csv --output ./letterkaarten.pdf
 lettercards deck check --csv ./deck.csv
 ```
 
+If your shell cannot find the `lettercards` command, run through Python directly:
+
+```bash
+python -m lettercards generate --csv ./deck.csv --output ./letterkaarten.pdf
+python -m lettercards deck check --csv ./deck.csv
+```
+
 ## 5) Customize safely
 
 - Add your own words in `deck.csv`.
-- Place personal photos in your repo and reference them by filename.
+- Place personal photos in your deck repo `images/` folder and reference them by filename.
 - Commit changes to your deck repo without changing upstream `lettercards` code.
+
+### Quick personal-card smoke test
+
+After copying starter files, add one personal card and verify:
+
+```bash
+cp ./images/appel.png ./images/oma.png
+echo "o,oma,oma.png,,yes,active,,nl" >> ./deck.csv
+lettercards deck check --csv ./deck.csv
+lettercards generate --csv ./deck.csv --no-placeholders --output ./letterkaarten.pdf
+```
 
 ## Updating from upstream
 

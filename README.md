@@ -131,6 +131,7 @@ This repository now includes a ready-to-copy starter deck in [`starter-deck/`](s
 - `starter-deck/images/`
 
 If you want a separate repository for your own family deck while keeping `lettercards` as the shared engine, follow [`docs/starter-deck-setup.md`](docs/starter-deck-setup.md).
+That guide now includes a personal-card smoke test and a `python -m lettercards` fallback if the CLI entrypoint is unavailable.
 
 Quick flow:
 1. Create your own deck repo.
