@@ -1,5 +1,5 @@
 """
-deck_state.py — load and validate deck-state.json.
+deck_state.py — load, validate, and write deck-state.json.
 
 The deck state file is machine-managed operational memory. It lives alongside
 deck.csv (default: ~/.lettercards/) and tracks printed cards, sessions, and
@@ -9,9 +9,14 @@ learning progress. It is NOT checked into the engine repo.
 from __future__ import annotations
 
 import json
+from datetime import date as _date
 from pathlib import Path
 
 SUPPORTED_PROTOCOL = "1.0"
+
+VALID_LETTER_STATUSES = frozenset({
+    "not_introduced", "introduced", "learning", "recognized", "mastered"
+})
 
 
 def read_deck_state(path: Path) -> tuple[dict | None, str | None]:
@@ -96,3 +101,85 @@ def validate_deck_state(state: dict | None, csv_words: set[str]) -> list[str]:
                 )
 
     return warnings
+
+
+def new_deck_state() -> dict:
+    """Return a fresh, empty deck state with the current protocol version."""
+    return {
+        "deck_protocol": SUPPORTED_PROTOCOL,
+        "next_batch": [],
+        "printed_cards": [],
+        "sessions": [],
+        "progress": {"letters": {}, "summary_snapshots": []},
+    }
+
+
+def write_deck_state(path: Path, state: dict) -> None:
+    """Write deck-state.json atomically (write to .tmp then rename)."""
+    content = json.dumps(state, indent=2, ensure_ascii=False) + "\n"
+    tmp = Path(str(path) + ".tmp")
+    tmp.write_text(content, encoding="utf-8")
+    tmp.replace(path)
+
+
+def add_review_session(state: dict, session: dict) -> None:
+    """Append a review session entry to state['sessions'] in-place."""
+    state.setdefault("sessions", []).append(session)
+
+
+def update_letter_progress(
+    state: dict,
+    letter: str,
+    status: str,
+    note: str | None = None,
+    date_str: str | None = None,
+) -> None:
+    """Update or create a letter's progress entry in-place.
+
+    If the letter has no entry yet, creates one with ``first_introduced`` set
+    to today (or ``date_str``). Always sets ``status``. Appends ``note`` to
+    observations when provided.
+    """
+    today = date_str or str(_date.today())
+    letters = state.setdefault("progress", {}).setdefault("letters", {})
+    entry = letters.get(letter)
+    if entry is None:
+        entry = {"status": status, "first_introduced": today, "observations": []}
+        letters[letter] = entry
+    else:
+        entry["status"] = status
+    if note:
+        entry.setdefault("observations", []).append({"date": today, "note": note})
+
+
+def format_progress_summary(state: dict) -> str:
+    """Return a human-readable progress summary string."""
+    letters = state.get("progress", {}).get("letters", {})
+
+    if not letters:
+        return "No progress recorded yet."
+
+    by_status: dict[str, list[str]] = {}
+    for letter, entry in sorted(letters.items()):
+        s = entry.get("status", "unknown")
+        by_status.setdefault(s, []).append(letter)
+
+    lines = ["Progress summary:"]
+    for s in ("mastered", "recognized", "learning", "introduced", "not_introduced"):
+        lts = by_status.get(s, [])
+        if lts:
+            lines.append(f"  {s}: {', '.join(lts)}")
+    unknown = by_status.get("unknown", [])
+    if unknown:
+        lines.append(f"  unknown: {', '.join(unknown)}")
+
+    reviews = [s for s in state.get("sessions", []) if s.get("type") == "review"]
+    if reviews:
+        last = reviews[-1]
+        lines.append(f"\nLast review: {last.get('date', 'unknown')}")
+        if last.get("letters_played"):
+            lines.append(f"  Letters played: {', '.join(last['letters_played'])}")
+        if last.get("duration_minutes"):
+            lines.append(f"  Duration: {last['duration_minutes']} minutes")
+
+    return "\n".join(lines)

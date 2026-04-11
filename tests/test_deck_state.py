@@ -1,7 +1,17 @@
-"""Tests for deck_state.py — load and validate deck-state.json."""
+"""Tests for deck_state.py — load, validate, and write deck-state.json."""
 import json
 
-from deck_state import load_deck_state, read_deck_state, validate_deck_state
+from deck_state import (
+    add_review_session,
+    format_progress_summary,
+    load_deck_state,
+    new_deck_state,
+    read_deck_state,
+    update_letter_progress,
+    validate_deck_state,
+    VALID_LETTER_STATUSES,
+    write_deck_state,
+)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -248,3 +258,156 @@ def test_startup_validation_warns_for_corrupt_deck_state(tmp_path):
         capture_output=True, text=True
     )
     assert "could not read" in result.stdout or "could not read" in result.stderr
+
+
+# ── new_deck_state ────────────────────────────────────────────────────────────
+
+def test_new_deck_state_has_required_keys():
+    state = new_deck_state()
+    assert state["deck_protocol"] == "1.0"
+    assert state["printed_cards"] == []
+    assert state["sessions"] == []
+    assert "progress" in state
+    assert state["progress"]["letters"] == {}
+
+
+# ── write_deck_state ──────────────────────────────────────────────────────────
+
+def test_write_deck_state_creates_file(tmp_path):
+    path = tmp_path / "deck-state.json"
+    state = new_deck_state()
+    write_deck_state(path, state)
+    assert path.exists()
+    loaded = json.loads(path.read_text(encoding="utf-8"))
+    assert loaded["deck_protocol"] == "1.0"
+
+
+def test_write_deck_state_overwrites_existing(tmp_path):
+    path = tmp_path / "deck-state.json"
+    write_deck_state(path, {"deck_protocol": "1.0", "printed_cards": []})
+    write_deck_state(path, {"deck_protocol": "1.0", "printed_cards": [{"word": "appel"}]})
+    loaded = json.loads(path.read_text(encoding="utf-8"))
+    assert len(loaded["printed_cards"]) == 1
+
+
+def test_write_deck_state_leaves_no_tmp_file(tmp_path):
+    path = tmp_path / "deck-state.json"
+    write_deck_state(path, new_deck_state())
+    assert not (tmp_path / "deck-state.json.tmp").exists()
+
+
+# ── add_review_session ────────────────────────────────────────────────────────
+
+def test_add_review_session_appends_entry():
+    state = new_deck_state()
+    add_review_session(state, {"type": "review", "date": "2026-04-11", "letters_played": ["a"]})
+    assert len(state["sessions"]) == 1
+    assert state["sessions"][0]["date"] == "2026-04-11"
+
+
+def test_add_review_session_preserves_existing_sessions():
+    state = new_deck_state()
+    state["sessions"].append({"type": "print", "date": "2026-04-01"})
+    add_review_session(state, {"type": "review", "date": "2026-04-11"})
+    assert len(state["sessions"]) == 2
+
+
+def test_add_review_session_works_when_sessions_key_missing():
+    state = {"deck_protocol": "1.0"}
+    add_review_session(state, {"type": "review", "date": "2026-04-11"})
+    assert len(state["sessions"]) == 1
+
+
+# ── update_letter_progress ────────────────────────────────────────────────────
+
+def test_update_letter_progress_creates_new_entry():
+    state = new_deck_state()
+    update_letter_progress(state, "a", "recognized", date_str="2026-04-11")
+    entry = state["progress"]["letters"]["a"]
+    assert entry["status"] == "recognized"
+    assert entry["first_introduced"] == "2026-04-11"
+
+
+def test_update_letter_progress_updates_existing_status():
+    state = new_deck_state()
+    update_letter_progress(state, "a", "introduced", date_str="2026-04-01")
+    update_letter_progress(state, "a", "recognized", date_str="2026-04-11")
+    assert state["progress"]["letters"]["a"]["status"] == "recognized"
+    assert state["progress"]["letters"]["a"]["first_introduced"] == "2026-04-01"
+
+
+def test_update_letter_progress_appends_note():
+    state = new_deck_state()
+    update_letter_progress(state, "a", "learning", note="points at A on box", date_str="2026-04-11")
+    obs = state["progress"]["letters"]["a"]["observations"]
+    assert len(obs) == 1
+    assert obs[0]["note"] == "points at A on box"
+    assert obs[0]["date"] == "2026-04-11"
+
+
+def test_update_letter_progress_no_note_leaves_observations_empty():
+    state = new_deck_state()
+    update_letter_progress(state, "d", "introduced", date_str="2026-04-11")
+    assert state["progress"]["letters"]["d"]["observations"] == []
+
+
+def test_update_letter_progress_multiple_notes_accumulate():
+    state = new_deck_state()
+    update_letter_progress(state, "a", "learning", note="first obs", date_str="2026-04-10")
+    update_letter_progress(state, "a", "recognized", note="second obs", date_str="2026-04-11")
+    obs = state["progress"]["letters"]["a"]["observations"]
+    assert len(obs) == 2
+
+
+def test_update_letter_progress_works_when_progress_key_missing():
+    state = {"deck_protocol": "1.0"}
+    update_letter_progress(state, "a", "introduced", date_str="2026-04-11")
+    assert state["progress"]["letters"]["a"]["status"] == "introduced"
+
+
+# ── VALID_LETTER_STATUSES ─────────────────────────────────────────────────────
+
+def test_valid_letter_statuses_contains_expected_values():
+    assert "not_introduced" in VALID_LETTER_STATUSES
+    assert "introduced" in VALID_LETTER_STATUSES
+    assert "learning" in VALID_LETTER_STATUSES
+    assert "recognized" in VALID_LETTER_STATUSES
+    assert "mastered" in VALID_LETTER_STATUSES
+
+
+# ── format_progress_summary ───────────────────────────────────────────────────
+
+def test_format_progress_summary_no_progress():
+    state = new_deck_state()
+    result = format_progress_summary(state)
+    assert "No progress" in result
+
+
+def test_format_progress_summary_shows_letter_statuses():
+    state = new_deck_state()
+    update_letter_progress(state, "a", "recognized", date_str="2026-04-11")
+    update_letter_progress(state, "d", "learning", date_str="2026-04-11")
+    result = format_progress_summary(state)
+    assert "recognized: a" in result
+    assert "learning: d" in result
+
+
+def test_format_progress_summary_shows_last_review():
+    state = new_deck_state()
+    update_letter_progress(state, "a", "recognized", date_str="2026-04-11")
+    add_review_session(state, {
+        "type": "review", "date": "2026-04-11",
+        "letters_played": ["a", "d"], "duration_minutes": 15,
+    })
+    result = format_progress_summary(state)
+    assert "Last review: 2026-04-11" in result
+    assert "Letters played: a, d" in result
+    assert "Duration: 15 minutes" in result
+
+
+def test_format_progress_summary_no_review_in_sessions():
+    state = new_deck_state()
+    update_letter_progress(state, "a", "recognized", date_str="2026-04-11")
+    add_review_session(state, {"type": "print", "date": "2026-04-10"})
+    result = format_progress_summary(state)
+    assert "Last review" not in result

@@ -81,3 +81,97 @@ def test_deck_check_reports_missing_images(tmp_path):
     result = run_cli("deck", "check", "--csv", str(csv_file))
     assert result.returncode != 0
     assert "Missing image for 'appel'" in result.stdout
+
+
+# ── progress commands ─────────────────────────────────────────────────────────
+
+def test_progress_show_help_works():
+    result = run_cli("progress", "show", "--help")
+    assert result.returncode == 0
+    assert "--deck-state" in result.stdout
+
+
+def test_progress_update_letter_help_works():
+    result = run_cli("progress", "update-letter", "--help")
+    assert result.returncode == 0
+    assert "--note" in result.stdout
+
+
+def test_progress_log_review_help_works():
+    result = run_cli("progress", "log-review", "--help")
+    assert result.returncode == 0
+    assert "--letters" in result.stdout
+    assert "--duration" in result.stdout
+
+
+def test_progress_show_no_state_file(tmp_path):
+    result = run_cli("progress", "show", "--deck-state", str(tmp_path / "nonexistent.json"))
+    assert result.returncode == 0
+    assert "No deck-state" in result.stdout or "No progress" in result.stdout
+
+
+def test_progress_update_letter_creates_state_file(tmp_path):
+    path = tmp_path / "deck-state.json"
+    result = run_cli(
+        "progress", "update-letter", "a", "recognized",
+        "--note", "points at A on cereal box",
+        "--date", "2026-04-11",
+        "--deck-state", str(path),
+    )
+    assert result.returncode == 0
+    assert "Updated letter 'a'" in result.stdout
+    assert path.exists()
+    import json
+    state = json.loads(path.read_text())
+    assert state["progress"]["letters"]["a"]["status"] == "recognized"
+    assert state["progress"]["letters"]["a"]["observations"][0]["note"] == "points at A on cereal box"
+
+
+def test_progress_update_letter_rejects_invalid_status(tmp_path):
+    result = run_cli(
+        "progress", "update-letter", "a", "flying",
+        "--deck-state", str(tmp_path / "deck-state.json"),
+    )
+    assert result.returncode != 0
+    assert "Invalid status" in result.stdout
+
+
+def test_progress_log_review_creates_session(tmp_path):
+    path = tmp_path / "deck-state.json"
+    result = run_cli(
+        "progress", "log-review",
+        "--date", "2026-04-11",
+        "--duration", "15",
+        "--letters", "a,d,o",
+        "--notes", "she loved appel",
+        "--deck-state", str(path),
+    )
+    assert result.returncode == 0
+    assert "Review session logged" in result.stdout
+    assert "Letters played: a, d, o" in result.stdout
+    import json
+    state = json.loads(path.read_text())
+    session = state["sessions"][0]
+    assert session["type"] == "review"
+    assert session["letters_played"] == ["a", "d", "o"]
+    assert session["duration_minutes"] == 15
+    assert session["notes"] == "she loved appel"
+
+
+def test_progress_log_review_appends_to_existing_sessions(tmp_path):
+    path = tmp_path / "deck-state.json"
+    run_cli("progress", "log-review", "--date", "2026-04-10", "--deck-state", str(path))
+    run_cli("progress", "log-review", "--date", "2026-04-11", "--deck-state", str(path))
+    import json
+    state = json.loads(path.read_text())
+    assert len(state["sessions"]) == 2
+
+
+def test_progress_show_displays_summary(tmp_path):
+    path = tmp_path / "deck-state.json"
+    run_cli("progress", "update-letter", "a", "recognized", "--date", "2026-04-11", "--deck-state", str(path))
+    run_cli("progress", "update-letter", "d", "learning", "--date", "2026-04-11", "--deck-state", str(path))
+    result = run_cli("progress", "show", "--deck-state", str(path))
+    assert result.returncode == 0
+    assert "recognized: a" in result.stdout
+    assert "learning: d" in result.stdout

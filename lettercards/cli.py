@@ -6,7 +6,16 @@ from pathlib import Path
 import generate
 import pictogram_workflow
 import process_photo
-from deck_state import read_deck_state, validate_deck_state
+from deck_state import (
+    add_review_session,
+    format_progress_summary,
+    new_deck_state,
+    read_deck_state,
+    update_letter_progress,
+    validate_deck_state,
+    VALID_LETTER_STATUSES,
+    write_deck_state,
+)
 
 
 def default_csv_argument() -> str:
@@ -142,6 +151,74 @@ def cmd_deck_check(args: argparse.Namespace) -> int:
     return 0
 
 
+def _deck_state_path(args: argparse.Namespace) -> Path:
+    """Resolve the deck-state.json path from CLI args."""
+    if getattr(args, "deck_state", None):
+        return Path(args.deck_state)
+    csv_arg = args.csv if getattr(args, "csv", None) is not None else default_csv_argument()
+    base_dir = Path(generate.__file__).resolve().parent
+    csv_path = base_dir / csv_arg
+    return csv_path.parent / "deck-state.json"
+
+
+def cmd_progress_show(args: argparse.Namespace) -> int:
+    path = _deck_state_path(args)
+    state, error = read_deck_state(path)
+    if error:
+        print(f"Error reading deck-state.json: {error}")
+        return 1
+    if state is None:
+        print("No deck-state.json found. No progress recorded yet.")
+        return 0
+    print(format_progress_summary(state))
+    return 0
+
+
+def cmd_progress_update_letter(args: argparse.Namespace) -> int:
+    if args.status not in VALID_LETTER_STATUSES:
+        print(f"Invalid status '{args.status}'. Valid values: {', '.join(sorted(VALID_LETTER_STATUSES))}")
+        return 1
+    path = _deck_state_path(args)
+    state, error = read_deck_state(path)
+    if error:
+        print(f"Error reading deck-state.json: {error}")
+        return 1
+    if state is None:
+        state = new_deck_state()
+    update_letter_progress(state, args.letter, args.status, note=args.note, date_str=args.date)
+    write_deck_state(path, state)
+    print(f"Updated letter '{args.letter}' → {args.status}")
+    if args.note:
+        print(f"  Note: {args.note}")
+    return 0
+
+
+def cmd_progress_log_review(args: argparse.Namespace) -> int:
+    from datetime import date as _date
+    path = _deck_state_path(args)
+    state, error = read_deck_state(path)
+    if error:
+        print(f"Error reading deck-state.json: {error}")
+        return 1
+    if state is None:
+        state = new_deck_state()
+    session: dict = {"type": "review", "date": args.date or str(_date.today())}
+    if args.duration is not None:
+        session["duration_minutes"] = args.duration
+    if args.letters:
+        session["letters_played"] = [lt.strip() for lt in args.letters.split(",")]
+    if args.notes:
+        session["notes"] = args.notes
+    add_review_session(state, session)
+    write_deck_state(path, state)
+    print(f"Review session logged for {session['date']}")
+    if session.get("letters_played"):
+        print(f"  Letters played: {', '.join(session['letters_played'])}")
+    if session.get("duration_minutes"):
+        print(f"  Duration: {session['duration_minutes']} minutes")
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Unified CLI for lettercards workflows")
     subparsers = parser.add_subparsers(dest="command")
@@ -203,6 +280,37 @@ def build_parser() -> argparse.ArgumentParser:
     deck_check_parser.add_argument("--deck-state", type=str, default=None, help="Path to deck-state.json")
     deck_check_parser.add_argument("--personal-dir", type=str, default=None, help="Directory for personal photos")
     deck_check_parser.set_defaults(func=cmd_deck_check)
+
+    progress_parser = subparsers.add_parser("progress", help="Learning progress tracking")
+    progress_subparsers = progress_parser.add_subparsers(dest="progress_command")
+
+    progress_show_parser = progress_subparsers.add_parser("show", help="Show progress summary")
+    progress_show_parser.add_argument("--deck-state", type=str, default=None, help="Path to deck-state.json")
+    progress_show_parser.add_argument("--csv", type=str, default=None, help="Path to the deck CSV (used to locate deck-state.json)")
+    progress_show_parser.set_defaults(func=cmd_progress_show)
+
+    progress_update_parser = progress_subparsers.add_parser(
+        "update-letter", help="Update a letter's learning status"
+    )
+    progress_update_parser.add_argument("letter", help="The letter to update (e.g. a)")
+    progress_update_parser.add_argument(
+        "status",
+        help=f"New status. One of: {', '.join(sorted(VALID_LETTER_STATUSES))}",
+    )
+    progress_update_parser.add_argument("--note", type=str, default=None, help="Optional observation note")
+    progress_update_parser.add_argument("--date", type=str, default=None, help="Date for the update (YYYY-MM-DD, default: today)")
+    progress_update_parser.add_argument("--deck-state", type=str, default=None, help="Path to deck-state.json")
+    progress_update_parser.add_argument("--csv", type=str, default=None, help="Path to the deck CSV (used to locate deck-state.json)")
+    progress_update_parser.set_defaults(func=cmd_progress_update_letter)
+
+    progress_log_parser = progress_subparsers.add_parser("log-review", help="Log a review session")
+    progress_log_parser.add_argument("--date", type=str, default=None, help="Session date (YYYY-MM-DD, default: today)")
+    progress_log_parser.add_argument("--duration", type=int, default=None, metavar="MINUTES", help="Duration in minutes")
+    progress_log_parser.add_argument("--letters", type=str, default=None, help="Comma-separated letters played (e.g. a,d,o)")
+    progress_log_parser.add_argument("--notes", type=str, default=None, help="Free-text session notes")
+    progress_log_parser.add_argument("--deck-state", type=str, default=None, help="Path to deck-state.json")
+    progress_log_parser.add_argument("--csv", type=str, default=None, help="Path to the deck CSV (used to locate deck-state.json)")
+    progress_log_parser.set_defaults(func=cmd_progress_log_review)
 
     return parser
 
