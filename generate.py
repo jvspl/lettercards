@@ -331,7 +331,7 @@ def draw_placeholder(c, x, y, w, h, word, accent):
     c.setFillColor(Color(accent.red, accent.green, accent.blue, alpha=0.08))
     c.roundRect(x, y, w, h, 2 * mm, fill=1, stroke=0)
 
-    # "?" + word as placeholder text
+    # Centered label: "[foto: word]"
     c.setFont("Helvetica", 10)
     c.setFillColor(Color(accent.red, accent.green, accent.blue, alpha=0.5))
     label = f"[foto: {word}]"
