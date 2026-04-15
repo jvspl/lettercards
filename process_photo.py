@@ -214,7 +214,6 @@ Examples:
     if args.preview:
         print(f"\nPreview mode - not saving.")
         print(f"Would save to: {output_path}")
-        # Could open preview here, but keeping it simple for now
         result.show()
     else:
         result.save(output_path, 'PNG')
