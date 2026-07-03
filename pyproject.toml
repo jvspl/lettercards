@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lettercards"
+version = "2.0.0a1"
+description = "Printable A4 letter-learning cards for toddlers"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "GPL-3.0-or-later" }
+dependencies = [
+    "reportlab>=4",
+    "pillow>=10",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+lettercards = "lettercards.cli:main"
+
+[project.urls]
+Repository = "https://github.com/jvspl/lettercards"
+
+[tool.setuptools]
+packages = ["lettercards"]
+
+[tool.setuptools.package-data]
+lettercards = ["starter/deck.csv", "starter/images/*.png", "starter/images/SOURCES.md"]
