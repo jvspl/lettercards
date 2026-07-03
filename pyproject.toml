@@ -27,4 +27,5 @@ Repository = "https://github.com/jvspl/lettercards"
 packages = ["lettercards"]
 
 [tool.setuptools.package-data]
-lettercards = ["starter/deck.csv", "starter/images/*.png", "starter/images/SOURCES.md"]
+lettercards = ["starter/deck.csv", "starter/images/*.png", "starter/images/SOURCES.md",
+               "fonts/*.ttf", "fonts/*.txt"]

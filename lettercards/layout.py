@@ -1,14 +1,19 @@
-"""Card design: dimensions, colors, fonts, and the two card faces.
+"""Card design: 'Kleurblok' (chosen July 2026, v2 redesign).
 
-Ported unchanged from the v1 design so printed batches keep matching.
-The Phase 2 redesign happens here and only here.
+Picture cards are the stable anchor: always the same font (Andika, made
+for beginning readers), always lowercase, accent color band behind the
+word, a language pill on every card (no language is the default). Letter
+cards are "letter family" cards: the big canonical lowercase form plus a
+specimen row showing the letter's other real-life shapes (uppercase,
+double-story print sans, serif). Deliberate variation lives there, and
+only there.
+
+Fonts are bundled so every machine renders identical cards.
 """
 
-import os
-import zlib
 from pathlib import Path
 
-from reportlab.lib.colors import Color, HexColor, white
+from reportlab.lib.colors import Color, HexColor
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm, mm
 from reportlab.pdfbase import pdfmetrics
@@ -27,131 +32,147 @@ SPACING_Y = (PAGE_H - ROWS * CARD_H) / ROWS
 MARGIN_X, MARGIN_Y = SPACING_X / 2, SPACING_Y / 2
 
 HIGHLIGHT = HexColor("#E63946")
-BG_PICTURE = HexColor("#FFF8F0")
-BG_LETTER = HexColor("#F0F7FF")
-BORDER = HexColor("#CCCCCC")
+BG_CARD = HexColor("#FFF8F0")
+BORDER = HexColor("#E0DAD2")
 WORD_COLOR = HexColor("#2B2D42")
+BAND_ALPHA = 0.14
+LETTER_BG_ALPHA = 0.12
 
 LETTER_COLORS = {
     'a': HexColor("#E63946"), 'b': HexColor("#457B9D"), 'c': HexColor("#E9C46A"),
     'd': HexColor("#2A9D8F"), 'e': HexColor("#F4A261"), 'f': HexColor("#6A4C93"),
     'g': HexColor("#1D3557"), 'h': HexColor("#E76F51"), 'i': HexColor("#264653"),
-    'j': HexColor("#A8DADC"), 'k': HexColor("#F4A261"), 'l': HexColor("#2A9D8F"),
+    'j': HexColor("#3D8EB9"), 'k': HexColor("#F4A261"), 'l': HexColor("#2A9D8F"),
     'm': HexColor("#E63946"), 'n': HexColor("#457B9D"), 'o': HexColor("#E9C46A"),
     'p': HexColor("#6A4C93"), 'r': HexColor("#E76F51"), 's': HexColor("#2A9D8F"),
     't': HexColor("#F4A261"), 'v': HexColor("#457B9D"), 'w': HexColor("#1D3557"),
     'z': HexColor("#E63946"),
 }
 
-SYSTEM_FONTS = {
-    # macOS — visually distinct, child-friendly
-    "ArialRounded": "/System/Library/Fonts/Supplemental/Arial Rounded Bold.ttf",
-    "ComicSans":    "/System/Library/Fonts/Supplemental/Comic Sans MS Bold.ttf",
-    "GeorgiaBold":  "/System/Library/Fonts/Supplemental/Georgia Bold.ttf",
-    "BradleyHand":  "/System/Library/Fonts/Supplemental/Bradley Hand Bold.ttf",
-    # Linux fallbacks
-    "DejaVuSans":   "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-    "Lato":         "/usr/share/fonts/truetype/lato/Lato-Bold.ttf",
-    "DejaVuSerif":  "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
-    "Caladea":      "/usr/share/fonts/truetype/crosextra/Caladea-Bold.ttf",
+LANGUAGE_COLORS = {
+    "nl": HexColor("#3E6CB0"),
+    "es": HexColor("#C77B30"),
 }
-FONT_ROTATION = ["ArialRounded", "ComicSans", "GeorgiaBold", "BradleyHand",
-                 "DejaVuSerif", "Caladea", "DejaVuSans", "Lato"]
+LANGUAGE_DEFAULT = HexColor("#8A8A8A")
+
+FONT_DIR = Path(__file__).parent / "fonts"
+PRIMARY = "Andika"
+PILL_FONT = "AndikaRegular"
+# Letter-family specimen row: other real-life shapes of the same letter.
+SPECIMENS = (
+    ("Andika", str.upper),        # canonical uppercase
+    ("Lato", str.lower),          # print sans (double-story a, g)
+    ("DejaVuSerif", str.lower),   # serif lowercase
+    ("DejaVuSerif", str.upper),   # serif uppercase
+)
+
+_fonts_ready = False
 
 
-def register_fonts() -> list[str]:
-    registered = []
-    for name, path in SYSTEM_FONTS.items():
-        if os.path.exists(path):
-            try:
-                pdfmetrics.registerFont(TTFont(name, path))
-                registered.append(name)
-            except Exception:
-                pass
-    return registered
+def register_fonts():
+    """Register the bundled fonts (idempotent)."""
+    global _fonts_ready
+    if _fonts_ready:
+        return
+    for name, filename in (
+        ("Andika", "Andika-Bold.ttf"),
+        ("AndikaRegular", "Andika-Regular.ttf"),
+        ("Lato", "Lato-Bold.ttf"),
+        ("DejaVuSerif", "DejaVuSerif-Bold.ttf"),
+    ):
+        pdfmetrics.registerFont(TTFont(name, str(FONT_DIR / filename)))
+    _fonts_ready = True
 
 
-def pick_font(word: str, override: str | None, available: list[str]) -> str:
-    """Rotate fonts per word, deterministically (stable across runs)."""
-    if override and override in available:
-        return override
-    usable = [f for f in FONT_ROTATION if f in available] or available
-    if not usable:
-        return "Helvetica"
-    return usable[zlib.crc32(word.encode("utf-8")) % len(usable)]
+def _tint(color, alpha):
+    return Color(color.red, color.green, color.blue, alpha=alpha)
 
 
-def _rounded_card(c, x, y, fill):
+def _card_base(c, x, y, fill):
     c.setStrokeColor(BORDER)
     c.setLineWidth(0.5)
     c.setFillColor(fill)
     c.roundRect(x, y, CARD_W, CARD_H, CORNER_R, fill=1, stroke=1)
 
 
-def draw_picture_card(c, x, y, word: str, image_path: Path, font: str, letter: str):
-    """Image on top, word below with accent first letter, letter badges in corners."""
-    _rounded_card(c, x, y, BG_PICTURE)
-    accent = LETTER_COLORS.get(letter, HIGHLIGHT)
-
-    img_margin = 4 * mm
-    area_x, area_y = x + img_margin, y + CARD_H * 0.28
-    area_w, area_h = CARD_W - 2 * img_margin, CARD_H * 0.65
-    with Image.open(image_path) as img:
+def _draw_image(c, path, ax, ay, aw, ah):
+    c.setFillAlpha(1)  # clear any alpha left in the graphics state
+    with Image.open(path) as img:
         iw, ih = img.size
     aspect = iw / ih
-    if aspect > area_w / area_h:
-        draw_w, draw_h = area_w, area_w / aspect
+    if aspect > aw / ah:
+        dw, dh = aw, aw / aspect
     else:
-        draw_w, draw_h = area_h * aspect, area_h
-    c.drawImage(str(image_path),
-                area_x + (area_w - draw_w) / 2, area_y + (area_h - draw_h) / 2,
-                draw_w, draw_h, preserveAspectRatio=True, mask='auto')
-
-    # Word with accent-colored first letter, sized to fit
-    display = word.lower()
-    first, rest = display[0], display[1:]
-    max_width = CARD_W - 2 * img_margin
-    size = 28
-    while size > 12 and pdfmetrics.stringWidth(display, font, size) > max_width:
-        size -= 1
-    total_w = pdfmetrics.stringWidth(display, font, size)
-    text_x, text_y = x + (CARD_W - total_w) / 2, y + CARD_H * 0.08
-    c.setFont(font, size)
-    c.setFillColor(accent)
-    c.drawString(text_x, text_y, first)
-    c.setFillColor(WORD_COLOR)
-    c.drawString(text_x + pdfmetrics.stringWidth(first, font, size), text_y, rest)
-
-    # Corner badges: filled lowercase top-left, outlined uppercase top-right
-    badge_r, badge_size = 6 * mm, 16
-    cy = y + CARD_H - 3 * mm - badge_r
-    for cx, fill, text_color, char in (
-        (x + 3 * mm + badge_r, accent, white, letter),
-        (x + CARD_W - 3 * mm - badge_r, white, accent, letter.upper()),
-    ):
-        c.setStrokeColor(accent)
-        c.setFillColor(fill)
-        c.circle(cx, cy, badge_r, fill=1, stroke=int(fill is white))
-        c.setFont(font, badge_size)
-        c.setFillColor(text_color)
-        w = pdfmetrics.stringWidth(char, font, badge_size)
-        c.drawString(cx - w / 2, cy - badge_size * 0.32, char)
+        dw, dh = ah * aspect, ah
+    c.drawImage(str(path), ax + (aw - dw) / 2, ay + (ah - dh) / 2, dw, dh,
+                preserveAspectRatio=True, mask='auto')
 
 
-def draw_letter_card(c, x, y, letter: str, font: str):
-    """Big accent-colored letter, faint opposite case at the bottom."""
-    _rounded_card(c, x, y, BG_LETTER)
+def _language_pill(c, x, y, language):
+    color = LANGUAGE_COLORS.get(language, LANGUAGE_DEFAULT)
+    w, h = 8.5 * mm, 4.5 * mm
+    px, py = x + CARD_W - 3 * mm - w, y + 3 * mm
+    c.setFillColor(_tint(color, 0.18))
+    c.roundRect(px, py, w, h, h / 2, fill=1, stroke=0)
+    c.setFont(PILL_FONT, 8)
+    c.setFillColor(color)
+    tw = pdfmetrics.stringWidth(language, PILL_FONT, 8)
+    c.drawString(px + (w - tw) / 2, py + 1.2 * mm, language)
+
+
+def draw_picture_card(c, x, y, word, image_path, letter, language):
+    """Image on cream, word on an accent-tinted band, language pill."""
+    register_fonts()
     accent = LETTER_COLORS.get(letter, HIGHLIGHT)
+    _card_base(c, x, y, BG_CARD)
 
-    size = 120
-    c.setFont(font, size)
-    w = pdfmetrics.stringWidth(letter, font, size)
+    band_h = CARD_H * 0.24
+    c.setFillColor(_tint(accent, BAND_ALPHA))
+    c.roundRect(x, y, CARD_W, band_h, CORNER_R, fill=1, stroke=0)
+    c.rect(x, y + band_h - CORNER_R, CARD_W, CORNER_R, fill=1, stroke=0)
+
+    _draw_image(c, image_path, x + 4 * mm, y + CARD_H * 0.27,
+                CARD_W - 8 * mm, CARD_H * 0.68)
+
+    display = word.lower()
+    size = 34
+    max_w = CARD_W - 23 * mm  # keeps the centered word clear of the language pill
+    while size > 12 and pdfmetrics.stringWidth(display, PRIMARY, size) > max_w:
+        size -= 1
+    first, rest = display[0], display[1:]
+    tx = x + (CARD_W - pdfmetrics.stringWidth(display, PRIMARY, size)) / 2
+    ty = y + band_h / 2 - size * 0.32
+    c.setFont(PRIMARY, size)
     c.setFillColor(accent)
-    c.drawString(x + (CARD_W - w) / 2, y + (CARD_H - size * 0.7) / 2, letter)
+    c.drawString(tx, ty, first)
+    c.setFillColor(WORD_COLOR)
+    c.drawString(tx + pdfmetrics.stringWidth(first, PRIMARY, size), ty, rest)
 
-    other = letter.upper() if letter.islower() else letter.lower()
-    small = 24
-    c.setFont(font, small)
-    ow = pdfmetrics.stringWidth(other, font, small)
-    c.setFillColor(Color(accent.red, accent.green, accent.blue, alpha=0.4))
-    c.drawString(x + (CARD_W - ow) / 2, y + 5 * mm, other)
+    _language_pill(c, x, y, language)
+
+
+def draw_letter_card(c, x, y, letter):
+    """Letter family: big canonical lowercase + specimen row of other shapes."""
+    register_fonts()
+    accent = LETTER_COLORS.get(letter, HIGHLIGHT)
+    _card_base(c, x, y, BG_CARD)
+    c.setFillColor(_tint(accent, LETTER_BG_ALPHA))
+    c.roundRect(x, y, CARD_W, CARD_H, CORNER_R, fill=1, stroke=0)
+
+    size = 110
+    c.setFont(PRIMARY, size)
+    w = pdfmetrics.stringWidth(letter, PRIMARY, size)
+    c.setFillColor(accent)
+    c.drawString(x + (CARD_W - w) / 2, y + (CARD_H - size * 0.7) / 2 + 4 * mm, letter)
+
+    spec_size = 21
+    gap = 4 * mm
+    glyphs = [(font, tf(letter)) for font, tf in SPECIMENS]
+    total = sum(pdfmetrics.stringWidth(g, f, spec_size) for f, g in glyphs)
+    total += gap * (len(glyphs) - 1)
+    gx = x + (CARD_W - total) / 2
+    c.setFillColor(_tint(accent, 0.55))
+    for font, glyph in glyphs:
+        c.setFont(font, spec_size)
+        c.drawString(gx, y + 6 * mm, glyph)
+        gx += pdfmetrics.stringWidth(glyph, font, spec_size) + gap

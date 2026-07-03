@@ -20,7 +20,7 @@ def _render(args) -> int:
         return 1
 
     output = Path(args.output)
-    stats = render_pdf(selected, deck_dir, output, args.font)
+    stats = render_pdf(selected, deck_dir, output)
     print(f"✓ {output} — {stats['cards']} cards "
           f"({stats['picture_cards']} picture + {stats['letter_cards']} letter), "
           f"{stats['pages']} page(s)")
@@ -64,7 +64,6 @@ def main(argv=None) -> int:
     p_render.add_argument("deck", help="deck directory, or 'starter' for the bundled deck")
     p_render.add_argument("--letters", help="only these letters, comma-separated (a,d,o)")
     p_render.add_argument("--cards", help="only these words, comma-separated (zebra,kat)")
-    p_render.add_argument("--font", help="force one font for all cards")
     p_render.add_argument("-o", "--output", default="cards.pdf", help="output PDF path")
     p_render.set_defaults(func=_render)
 
