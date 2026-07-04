@@ -58,13 +58,26 @@ LANGUAGE_DEFAULT = HexColor("#8A8A8A")
 FONT_DIR = Path(__file__).parent / "fonts"
 PRIMARY = "Andika"
 PILL_FONT = "AndikaRegular"
-# Letter-family specimen row: other real-life shapes of the same letter.
-SPECIMENS = (
-    ("Andika", str.upper),        # canonical uppercase
-    ("Lato", str.lower),          # print sans (double-story a, g)
-    ("DejaVuSerif", str.lower),   # serif lowercase
-    ("DejaVuSerif", str.upper),   # serif uppercase
-)
+
+# Letter-family specimen rows, curated per letter from two sources:
+# allograph variation (letters whose *construction* differs across common
+# typefaces: single/double-story a and g, tailed vs bare l, serif I/J,
+# hooked f/t/y) and the handwriting model taught in Dutch schools
+# (Playwrite NL). Highly variable letters get a longer row; stable
+# letters (o, s, v, ...) only show their capital and handwritten form.
+# Entries are (font, case): "u" = uppercase, "l" = lowercase.
+_AND, _LATO, _SER, _HAND = "Andika", "Lato", "DejaVuSerif", "Playwrite"
+SPECIMEN_DEFAULT = ((_AND, "u"), (_HAND, "l"))
+SPECIMENS = {
+    "a": ((_AND, "u"), (_LATO, "l"), (_SER, "l"), (_HAND, "l")),
+    "f": ((_AND, "u"), (_SER, "l"), (_HAND, "l")),
+    "g": ((_AND, "u"), (_SER, "l"), (_HAND, "l")),
+    "i": ((_AND, "u"), (_SER, "u"), (_HAND, "l")),
+    "j": ((_AND, "u"), (_SER, "u"), (_HAND, "l")),
+    "l": ((_AND, "u"), (_LATO, "l"), (_SER, "l"), (_HAND, "l")),
+    "t": ((_AND, "u"), (_SER, "l"), (_HAND, "l")),
+    "y": ((_AND, "u"), (_SER, "l"), (_HAND, "l")),
+}
 
 _fonts_ready = False
 
@@ -79,6 +92,7 @@ def register_fonts():
         ("AndikaRegular", "Andika-Regular.ttf"),
         ("Lato", "Lato-Bold.ttf"),
         ("DejaVuSerif", "DejaVuSerif-Bold.ttf"),
+        ("Playwrite", "PlaywriteNL.ttf"),
     ):
         pdfmetrics.registerFont(TTFont(name, str(FONT_DIR / filename)))
     _fonts_ready = True
@@ -167,7 +181,8 @@ def draw_letter_card(c, x, y, letter):
 
     spec_size = 21
     gap = 4 * mm
-    glyphs = [(font, tf(letter)) for font, tf in SPECIMENS]
+    glyphs = [(font, letter.upper() if case == "u" else letter.lower())
+              for font, case in SPECIMENS.get(letter, SPECIMEN_DEFAULT)]
     total = sum(pdfmetrics.stringWidth(g, f, spec_size) for f, g in glyphs)
     total += gap * (len(glyphs) - 1)
     gx = x + (CARD_W - total) / 2
