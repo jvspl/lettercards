@@ -4,7 +4,43 @@ This file tracks the source, copyright status, and generation details for all im
 
 **Note:** Personal/private images (family photos etc.) never go in this repo; they live in a private deck repo alongside its `deck.csv`.
 
-**Post-processing (2026-07):** all 34 images had their backgrounds normalized to exactly `#FFF8F0` (the card cream) so they blend into the picture card; `zon.png` additionally had a white border stripe flood-filled away.
+**Post-processing (2026-07):** all 34 images had their backgrounds normalized to exactly `#FFF8F0` (the card cream) so they blend into the picture card; `zon.png` additionally had a white border stripe flood-filled away, and `banaan.png`/`bal.png` had residual background mottling flattened by border flood-fill (2026-07-04).
+
+## House style — "the zebra standard"
+
+Reference images: **zebra.png, beer.png, appel.png, auto.png**. Every new pictogram must sit
+next to these on a printed page without looking foreign. The style, spelled out:
+
+- **One subject, no scene.** Centered, filling ~70–75% of the square. One word = one thing;
+  no props or background elements to point at instead.
+- **Chubby, rounded, simplified.** Recognizable from its silhouette alone — cards print at
+  ~5 cm, and a toddler should be able to name it across the table.
+- **Thick, soft, dark-brown outline** (warm near-black, not pure black), rounded everywhere.
+- **Warm saturated colors with soft cel shading**: a base tone, one darker shade, a small
+  gloss highlight; light from the top left.
+- **Faces on animals only** — dot eyes, blush cheeks. Objects stay faceless.
+- **Flat cream `#FFF8F0` background** with one soft warm shadow ellipse under the subject.
+- **Never any text, letters, borders, or patterned backgrounds** — the card layout provides
+  the word and the frame.
+
+### Master generation prompt
+
+Attach 2–3 of the reference images, then:
+
+> Children's book illustration of **[WORD]**, exactly matching the style of the attached
+> reference images: cute, chubby rounded shapes, thick soft dark-brown outlines, warm
+> saturated colors with soft shading and a small gloss highlight, light from the top left,
+> **[minimal cute face with blush cheeks | no face — it is an object]**, a single subject
+> centered on a plain cream `#FFF8F0` background filling about three quarters of the frame,
+> small soft shadow underneath, no text, no border. Square image.
+
+### Intake checklist (before an image enters the deck)
+
+1. Side-by-side with zebra/beer/appel: same outline weight, shading softness, warmth?
+2. Square, at least 400×400.
+3. Background flattens cleanly to `#FFF8F0` (border flood-fill; check for mottling).
+4. Squint test at 3 cm: still recognizable?
+5. Add a row to the table below with source, date, and the prompt used.
 
 ## License Types
 
