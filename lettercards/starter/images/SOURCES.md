@@ -6,10 +6,19 @@ This file tracks the source, copyright status, and generation details for all im
 
 **Post-processing (2026-07):** all 34 images had their backgrounds normalized to exactly `#FFF8F0` (the card cream) so they blend into the picture card; `zon.png` additionally had a white border stripe flood-filled away, and `banaan.png`/`bal.png` had residual background mottling flattened by border flood-fill (2026-07-04).
 
-## House style — "the zebra standard"
+## House style — "Zebra–Nijntje–Ghibli"
 
-Reference images: **zebra.png, beer.png, appel.png, auto.png**. Every new pictogram must sit
-next to these on a printed page without looking foreign. The style, spelled out:
+Three anchors define the style; every new pictogram must honor all three:
+
+- **Zebra** — the concrete reference set: **zebra.png, beer.png, appel.png, auto.png**.
+  New art must sit next to these on a printed page without looking foreign: same outline
+  weight, palette warmth, shading softness.
+- **Nijntje** — radical simplicity: one subject, chubby rounded shapes, nothing a toddler
+  can't name. If a detail doesn't help a two-year-old recognize the word, it goes.
+- **Ghibli** — the warmth: soft light, gentle shading, storybook innocence. Never flat
+  clip-art, never plasticky 3D, never cold.
+
+Spelled out as rules:
 
 - **One subject, no scene.** Centered, filling ~70–75% of the square. One word = one thing;
   no props or background elements to point at instead.
@@ -29,18 +38,24 @@ Attach 2–3 of the reference images, then:
 
 > Children's book illustration of **[WORD]**, exactly matching the style of the attached
 > reference images: cute, chubby rounded shapes, thick soft dark-brown outlines, warm
-> saturated colors with soft shading and a small gloss highlight, light from the top left,
+> saturated colors with soft gentle shading and a small gloss highlight, light from the
+> top left, storybook warmth like a Studio Ghibli still,
 > **[minimal cute face with blush cheeks | no face — it is an object]**, a single subject
 > centered on a plain cream `#FFF8F0` background filling about three quarters of the frame,
 > small soft shadow underneath, no text, no border. Square image.
 
-### Intake checklist (before an image enters the deck)
+### Acceptance criteria for new cards
 
-1. Side-by-side with zebra/beer/appel: same outline weight, shading softness, warmth?
-2. Square, at least 400×400.
-3. Background flattens cleanly to `#FFF8F0` (border flood-fill; check for mottling).
-4. Squint test at 3 cm: still recognizable?
-5. Add a row to the table below with source, date, and the prompt used.
+A generated image enters the deck only if it passes all five:
+
+1. **Not foreign:** side-by-side with zebra/beer/appel — same outline weight, shading
+   softness, and warmth.
+2. **Simple:** one subject, no scene, silhouette alone is recognizable.
+3. **Learnable:** passes the squint test at 3 cm, and is not confusable with another word
+   already in the deck.
+4. **Technical:** square, ≥ 400×400, background flood-fills cleanly to `#FFF8F0`, no text
+   or border baked in.
+5. **Recorded:** a row in the table below with source, date, and the prompt used.
 
 ## License Types
 
