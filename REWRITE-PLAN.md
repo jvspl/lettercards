@@ -1,6 +1,8 @@
 # Lettercards v2 — Rewrite Plan
 
-**Status:** Agreed with Jeroen, 2026-07-03. This document supersedes `docs/architecture.md` and is the founding document of the v2 setup. Once Phase 0 completes, this repo is retired.
+**Status:** Agreed with Jeroen, 2026-07-03. This document supersedes the v1 `docs/architecture.md` and is the founding document of the v2 setup.
+
+**Progress (2026-07-04):** Phases 0–2 done — repos split, engine v0 shipped (render/check/photo), print-from-phone proven, Kleurblok design with letter-family specimen rows and language pills implemented. Phase 2's only remainder is taking the new personal photos. Phase 3 (Laura's deck, Spanish words) awaits Laura's starting point and a session with Pilar. Phase 4: v1 repo archived without issue migration — still-relevant ideas were carried into the design (bilingual, letter variation) or into engine issue #1.
 
 ## Why restart
 
