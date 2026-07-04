@@ -85,6 +85,18 @@ def test_cli_render_no_match(tmp_path):
                  "-o", str(tmp_path / "x.pdf")]) == 1
 
 
+def test_letter_colors_vowel_consonant_split():
+    """Vowels warm, consonants cool; alphabet neighbors never share a color."""
+    from lettercards.layout import LETTER_COLORS, VOWELS
+    alphabet = "abcdefghijklmnopqrstuvwxyz"
+    assert set(LETTER_COLORS) == set(alphabet)
+    for letter, color in LETTER_COLORS.items():
+        warm = color.red > color.blue
+        assert warm == (letter in VOWELS), f"{letter} breaks the warm/cool rule"
+    for a, b in zip(alphabet, alphabet[1:]):
+        assert LETTER_COLORS[a] != LETTER_COLORS[b], f"{a}/{b} share a color"
+
+
 def test_cli_photo_crops_square(tmp_path):
     from PIL import Image
     src = tmp_path / "portrait.jpg"

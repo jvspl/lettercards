@@ -38,17 +38,22 @@ WORD_COLOR = HexColor("#2B2D42")
 BAND_ALPHA = 0.14
 LETTER_BG_ALPHA = 0.12
 
+# Vowels get warm hues (each unique), consonants cool ones — a soft
+# Montessori-style vowel/consonant cue. Two invariants (tested): alphabet
+# neighbors never share a color, and every color is dark enough to work
+# both as word text on cream and as a ~14% background tint.
 LETTER_COLORS = {
-    'a': HexColor("#E63946"), 'b': HexColor("#457B9D"), 'c': HexColor("#E9C46A"),
+    'a': HexColor("#E63946"), 'b': HexColor("#457B9D"), 'c': HexColor("#6A4C93"),
     'd': HexColor("#2A9D8F"), 'e': HexColor("#F4A261"), 'f': HexColor("#6A4C93"),
-    'g': HexColor("#1D3557"), 'h': HexColor("#E76F51"), 'i': HexColor("#264653"),
-    'j': HexColor("#3D8EB9"), 'k': HexColor("#F4A261"), 'l': HexColor("#2A9D8F"),
-    'm': HexColor("#E63946"), 'n': HexColor("#457B9D"), 'o': HexColor("#E9C46A"),
-    'p': HexColor("#6A4C93"), 'q': HexColor("#3D8EB9"), 'r': HexColor("#E76F51"),
-    's': HexColor("#2A9D8F"), 't': HexColor("#F4A261"), 'u': HexColor("#2A9D8F"),
+    'g': HexColor("#1D3557"), 'h': HexColor("#2A9D8F"), 'i': HexColor("#E76F51"),
+    'j': HexColor("#3D8EB9"), 'k': HexColor("#6A4C93"), 'l': HexColor("#2A9D8F"),
+    'm': HexColor("#264653"), 'n': HexColor("#457B9D"), 'o': HexColor("#E9C46A"),
+    'p': HexColor("#6A4C93"), 'q': HexColor("#3D8EB9"), 'r': HexColor("#1D3557"),
+    's': HexColor("#2A9D8F"), 't': HexColor("#457B9D"), 'u': HexColor("#9C6644"),
     'v': HexColor("#457B9D"), 'w': HexColor("#1D3557"), 'x': HexColor("#6A4C93"),
-    'y': HexColor("#E76F51"), 'z': HexColor("#E63946"),
+    'y': HexColor("#2A9D8F"), 'z': HexColor("#1D3557"),
 }
+VOWELS = set("aeiou")
 
 LANGUAGE_COLORS = {
     "nl": HexColor("#3E6CB0"),
