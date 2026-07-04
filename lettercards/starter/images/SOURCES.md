@@ -2,7 +2,9 @@
 
 This file tracks the source, copyright status, and generation details for all images in `images/`.
 
-**Note:** Personal/private images (family photos etc.) are stored locally in `~/.lettercards/personal/` and are not tracked here.
+**Note:** Personal/private images (family photos etc.) never go in this repo; they live in a private deck repo alongside its `deck.csv`.
+
+**Post-processing (2026-07):** all 34 images had their backgrounds normalized to exactly `#FFF8F0` (the card cream) so they blend into the picture card; `zon.png` additionally had a white border stripe flood-filled away.
 
 ## License Types
 

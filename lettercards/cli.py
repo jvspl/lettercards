@@ -80,7 +80,7 @@ def main(argv=None) -> int:
     p_check.set_defaults(func=_check)
 
     p_photo = sub.add_parser("photo", help="prepare a photo as a square card image")
-    p_photo.add_argument("source", help="source photo (jpg/png/heic...)")
+    p_photo.add_argument("source", help="source photo (jpg/png; convert heic first)")
     p_photo.add_argument("output", help="output PNG path, e.g. images/oma.png")
     p_photo.add_argument("--size", type=int, default=800, help="output size in px")
     p_photo.set_defaults(func=_photo)
