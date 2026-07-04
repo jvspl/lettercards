@@ -1,6 +1,6 @@
 # lettercards
 
-Generate printable A4 letter-learning cards for toddlers: picture cards (image + word, first letter in an accent color) and letter-family cards (one big letter plus a specimen row of its other everyday shapes — capital, serif, handwritten). Feed it a deck — a `deck.csv` word list plus images — and it renders a print-ready PDF. Fonts are bundled, so cards render identically everywhere.
+Generate printable A4 letter-learning cards for toddlers: picture cards (image + word, first letter in an accent color — warm for vowels, cool for consonants) and letter-family cards (one big letter plus a specimen row of its other everyday shapes — capital, serif, handwritten). Feed it a deck — a `deck.csv` word list plus images — and it renders a print-ready PDF. Fonts are bundled, so cards render identically everywhere.
 
 ## Usage
 
