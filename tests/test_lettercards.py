@@ -83,3 +83,13 @@ def test_cli_check_starter(capsys):
 def test_cli_render_no_match(tmp_path):
     assert main(["render", "starter", "--letters", "q",
                  "-o", str(tmp_path / "x.pdf")]) == 1
+
+
+def test_cli_photo_crops_square(tmp_path):
+    from PIL import Image
+    src = tmp_path / "portrait.jpg"
+    Image.new("RGB", (600, 900), "#3366AA").save(src)
+    out = tmp_path / "images" / "oma.png"
+    assert main(["photo", str(src), str(out), "--size", "400"]) == 0
+    with Image.open(out) as img:
+        assert img.size == (400, 400)

@@ -6,6 +6,7 @@ from pathlib import Path
 
 from . import __version__
 from .deck import check_deck, load_deck, printable_cards, resolve_deck_dir
+from .photos import process_photo
 from .render import render_pdf
 
 
@@ -53,6 +54,13 @@ def _check(args) -> int:
     return 0
 
 
+def _photo(args) -> int:
+    out = process_photo(Path(args.source), Path(args.output), args.size)
+    print(f"✓ {out} — square {args.size}px card image")
+    print("  next: add/update the row in deck.csv and set its status to active")
+    return 0
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
         prog="lettercards",
@@ -70,6 +78,12 @@ def main(argv=None) -> int:
     p_check = sub.add_parser("check", help="validate a deck and summarize its state")
     p_check.add_argument("deck", help="deck directory, or 'starter'")
     p_check.set_defaults(func=_check)
+
+    p_photo = sub.add_parser("photo", help="prepare a photo as a square card image")
+    p_photo.add_argument("source", help="source photo (jpg/png/heic...)")
+    p_photo.add_argument("output", help="output PNG path, e.g. images/oma.png")
+    p_photo.add_argument("--size", type=int, default=800, help="output size in px")
+    p_photo.set_defaults(func=_photo)
 
     args = parser.parse_args(argv)
     return args.func(args)
