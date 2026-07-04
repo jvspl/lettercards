@@ -11,6 +11,7 @@ lettercards render path/to/your-deck -o cards.pdf
 lettercards render starter --letters a,z    # only some letters
 lettercards render starter --cards zebra    # reprint specific cards
 lettercards check path/to/your-deck         # validate deck.csv and images
+lettercards photo IMG_1234.jpg images/oma.png   # crop a photo into a square card image
 ```
 
 ## Deck format
