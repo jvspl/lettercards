@@ -1,6 +1,6 @@
 # lettercards
 
-Generate printable A4 letter-learning cards for toddlers: picture cards (image + word, first letter in an accent color) and letter cards (one big letter). Feed it a deck — a `deck.csv` word list plus images — and it renders a print-ready PDF.
+Generate printable A4 letter-learning cards for toddlers: picture cards (image + word, first letter in an accent color) and letter-family cards (one big letter plus a specimen row of its other everyday shapes — capital, serif, handwritten). Feed it a deck — a `deck.csv` word list plus images — and it renders a print-ready PDF. Fonts are bundled, so cards render identically everywhere.
 
 ## Usage
 
@@ -26,12 +26,18 @@ k,kasteel,,nl,idea,needs image
 
 - `status`: `idea` (word without image yet), `active` (rendered), `retired` (skipped).
 - `image` resolves against the deck's own `images/` first, then the bundled starter images.
-- `language`: BCP-47-ish code (`nl`, `es`); used for per-language card styling.
+- `language`: BCP-47-ish code (`nl`, `es`); shown as a small colored pill on each picture card. Defaults to `nl`.
 - Lines starting with `#` are comments.
 
 ## Starter deck
 
-`lettercards/starter/` is a complete, ready-to-print Dutch deck: 34 words with child-friendly pictograms (Nijntje-ish style), bundled with the package so `lettercards render starter` works anywhere after install. Image provenance and licensing are tracked in [lettercards/starter/images/SOURCES.md](lettercards/starter/images/SOURCES.md). The rewrite plan for this project lives in [REWRITE-PLAN.md](REWRITE-PLAN.md).
+`lettercards/starter/` is a complete, ready-to-print Dutch deck: 34 words with child-friendly pictograms (Nijntje-ish style), bundled with the package so `lettercards render starter` works anywhere after install. Image provenance and licensing are tracked in [lettercards/starter/images/SOURCES.md](lettercards/starter/images/SOURCES.md).
+
+## Project rules
+
+- **Line budget: ≤ 1,000 lines of Python including tests.** A feature that threatens the budget gets questioned before the budget does.
+- **No deck-management commands.** Adding words or changing statuses is editing `deck.csv` directly — by hand or by an assistant — not CLI work.
+- **PRs only for changes that could break rendering.** Docs and starter-deck tweaks go straight to `main`.
 
 ## Privacy rule
 
