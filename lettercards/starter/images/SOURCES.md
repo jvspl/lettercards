@@ -93,7 +93,7 @@ A generated image enters the deck only if it passes all five:
 | ![regen](regen.png) | regen | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a rain cloud with falling raindrops" (refs: zebra, beer, appel) |
 | ![schoen](schoen.png) | schoen | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a child's shoe" (refs: zebra, beer, appel) |
 | ![sok](sok.png) | sok | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a knitted sock" (refs: zebra, beer, appel) |
-| ![tafel](tafel.png) | tafel | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a simple wooden table" (refs: zebra, beer, appel) |
+| ![tafel](tafel.png) | tafel | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a long wooden dining table seen straight from the front, much wider than tall" (refs: zebra, beer, appel) |
 | ![tand](tand.png) | tand | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a single white tooth" (refs: zebra, beer, appel) |
 | ![vis](vis.png) | vis | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a chubby orange fish" (refs: zebra, beer, appel) |
 | ![vlinder](vlinder.png) | vlinder | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a colorful butterfly" (refs: zebra, beer, appel) |
