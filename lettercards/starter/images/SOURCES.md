@@ -60,7 +60,7 @@ A generated image enters the deck only if it passes all five:
 ## License Types
 
 - **ChatGPT/DALL-E**: Per OpenAI's terms, users own the images they create and can use them commercially.
-- **Pillow placeholder**: Self-created geometric shapes, no copyright restrictions.
+- **gpt-image (OpenAI API)**: Generated via the images API with reference images from this set attached; per OpenAI's terms, users own generated images.
 
 ## Images
 
@@ -68,35 +68,35 @@ A generated image enters the deck only if it passes all five:
 |:-------:|------|--------|------|--------|
 | ![appel](appel.png) | appel | ChatGPT/DALL-E | 2026-03-19 | |
 | ![auto](auto.png) | auto | ChatGPT/DALL-E | 2026-03-19 | |
-| ![bad](bad.png) | bad | Pillow placeholder | | |
+| ![bad](bad.png) | bad | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a bathtub with a few soap bubbles" (refs: zebra, beer, appel) |
 | ![bal](bal.png) | bal | ChatGPT/DALL-E | 2026-03-19 | Create a 3x1 grid of cute, simple, child-friendly illustration style similar to Dutch children's books like Nijntje (Miffy) or Dikkie Dik. Soft rounded shapes, warm colors, gentle outlines, cream/beige background. The style should be appealing to toddlers (age 2). The 3 items to draw (left to right, top to bottom): banaan, beer, bal. Each item should be in its own cell with a cream/beige background. Keep items centered and recognizable for a toddler. |
 | ![banaan](banaan.png) | banaan | ChatGPT/DALL-E | 2026-03-19 | Create a 3x1 grid of cute, simple, child-friendly illustration style similar to Dutch children's books like Nijntje (Miffy) or Dikkie Dik. Soft rounded shapes, warm colors, gentle outlines, cream/beige background. The style should be appealing to toddlers (age 2). The 3 items to draw (left to right, top to bottom): banaan, beer, bal. Each item should be in its own cell with a cream/beige background. Keep items centered and recognizable for a toddler. |
 | ![beer](beer.png) | beer | ChatGPT/DALL-E | 2026-03-19 | Create a 3x1 grid of cute, simple, child-friendly illustration style similar to Dutch children's books like Nijntje (Miffy) or Dikkie Dik. Soft rounded shapes, warm colors, gentle outlines, cream/beige background. The style should be appealing to toddlers (age 2). The 3 items to draw (left to right, top to bottom): banaan, beer, bal. Each item should be in its own cell with a cream/beige background. Keep items centered and recognizable for a toddler. |
-| ![boom](boom.png) | boom | Pillow placeholder | | |
+| ![boom](boom.png) | boom | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a leafy green tree" (refs: zebra, beer, appel) |
 | ![deur](deur.png) | deur | ChatGPT/DALL-E | 2026-03-19 | |
 | ![draak](draak.png) | draak | ChatGPT/DALL-E | 2026-03-19 | |
 | ![druif](druif.png) | druif | ChatGPT/DALL-E | 2026-03-19 | |
 | ![eend](eend.png) | eend | ChatGPT/DALL-E | 2026-03-19 | |
 | ![fiets](fiets.png) | fiets | ChatGPT/DALL-E | 2026-03-19 | |
-| ![hand](hand.png) | hand | Pillow placeholder | | |
-| ![huis](huis.png) | huis | Pillow placeholder | | |
-| ![jas](jas.png) | jas | Pillow placeholder | | |
+| ![hand](hand.png) | hand | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "an open child's hand, palm forward" (refs: zebra, beer, appel) |
+| ![huis](huis.png) | huis | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a simple house with a red roof" (refs: zebra, beer, appel) |
+| ![jas](jas.png) | jas | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a child's winter coat" (refs: zebra, beer, appel) |
 | ![kat](kat.png) | kat | ChatGPT/DALL-E | 2026-03-18 | |
 | ![koe](koe.png) | koe | ChatGPT/DALL-E | 2026-03-18 | |
 | ![leeuw](leeuw.png) | leeuw | ChatGPT/DALL-E | 2026-03-18 | |
-| ![melk](melk.png) | melk | Pillow placeholder | | |
-| ![muis](muis.png) | muis | Pillow placeholder | | |
-| ![neus](neus.png) | neus | Pillow placeholder | | |
+| ![melk](melk.png) | melk | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a drinking glass of white milk next to an oat-milk carton with a blank label and glass pictogram (no text)" (refs: zebra, beer, appel) |
+| ![muis](muis.png) | muis | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a little grey mouse" (refs: zebra, beer, appel) |
+| ![neus](neus.png) | neus | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a simple human nose" (refs: zebra, beer, appel) |
 | ![olifant](olifant.png) | olifant | ChatGPT/DALL-E | 2026-03-18 | |
 | ![oog](oog.png) | oog | ChatGPT/DALL-E | 2026-03-22 | Create a cute, simple, child-friendly illustration style similar to Dutch children's books like Nijntje (Miffy) or Dikkie Dik. Soft rounded shapes, warm colors, gentle outlines, pure white (#FFFFFF) background. The style should be appealing to toddlers (age 2). No text, labels, or captions in the image. Draw: oog. Make it centered on a cream/beige background, simple and recognizable for a toddler. |
-| ![peer](peer.png) | peer | Pillow placeholder | | |
-| ![regen](regen.png) | regen | Pillow placeholder | | |
-| ![schoen](schoen.png) | schoen | Pillow placeholder | | |
-| ![sok](sok.png) | sok | Pillow placeholder | | |
-| ![tafel](tafel.png) | tafel | Pillow placeholder | | |
-| ![tand](tand.png) | tand | Pillow placeholder | | |
-| ![vis](vis.png) | vis | Pillow placeholder | | |
-| ![vlinder](vlinder.png) | vlinder | Pillow placeholder | | |
+| ![peer](peer.png) | peer | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a green-yellow pear with a leaf" (refs: zebra, beer, appel) |
+| ![regen](regen.png) | regen | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a rain cloud with falling raindrops" (refs: zebra, beer, appel) |
+| ![schoen](schoen.png) | schoen | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a child's shoe" (refs: zebra, beer, appel) |
+| ![sok](sok.png) | sok | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a knitted sock" (refs: zebra, beer, appel) |
+| ![tafel](tafel.png) | tafel | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a simple wooden table" (refs: zebra, beer, appel) |
+| ![tand](tand.png) | tand | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a single white tooth" (refs: zebra, beer, appel) |
+| ![vis](vis.png) | vis | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a chubby orange fish" (refs: zebra, beer, appel) |
+| ![vlinder](vlinder.png) | vlinder | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a colorful butterfly" (refs: zebra, beer, appel) |
 | ![water](water.png) | water | ChatGPT/DALL-E | 2026-03-19 | |
 | ![zebra](zebra.png) | zebra | ChatGPT/DALL-E | 2026-03-18 | |
 | ![zon](zon.png) | zon | ChatGPT/DALL-E | 2026-03-19 | |
