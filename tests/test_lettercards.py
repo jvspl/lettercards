@@ -105,3 +105,17 @@ def test_cli_photo_crops_square(tmp_path):
     assert main(["photo", str(src), str(out), "--size", "400"]) == 0
     with Image.open(out) as img:
         assert img.size == (400, 400)
+
+
+def test_cli_photo_pictogram_flattens_background(tmp_path):
+    from PIL import Image, ImageDraw
+    src = tmp_path / "raw.png"
+    img = Image.new("RGB", (1024, 1024), (250, 244, 235))  # mottled-ish, near cream
+    ImageDraw.Draw(img).ellipse((300, 300, 724, 724), fill="#E8503A")
+    img.save(src)
+    out = tmp_path / "vis.png"
+    assert main(["photo", str(src), str(out), "--pictogram"]) == 0
+    with Image.open(out) as result:
+        assert result.size == (400, 400)
+        assert result.getpixel((2, 2)) == (255, 248, 240)   # background now card cream
+        assert result.getpixel((200, 200)) != (255, 248, 240)  # subject untouched

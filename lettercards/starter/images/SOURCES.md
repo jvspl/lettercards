@@ -57,6 +57,26 @@ A generated image enters the deck only if it passes all five:
    or border baked in.
 5. **Recorded:** a row in the table below with source, date, and the prompt used.
 
+### Generation recipe (OpenAI images API)
+
+Proven July 2026 (the 16-image batch below, ~$0.40 total):
+
+- **Where:** engine-repo cloud sessions — `OPENAI_API_KEY` and `api.openai.com` are
+  configured in this repo's environment. The family environment stays network-tight;
+  pictograms for family decks are generated here and handed over.
+- **Call:** `POST https://api.openai.com/v1/images/edits` (multipart form) with
+  `model=gpt-image-1-mini`, `quality=medium`, `size=1024x1024`, `n=1`, the master
+  prompt above as `prompt`, and `image[]=` zebra.png, beer.png, appel.png. The
+  response carries base64 PNG in `data[0].b64_json`. Escalate to `gpt-image-1.5`
+  only if mini can't hold the style (~$0.02 vs ~$0.06 per image, July 2026 prices).
+- **Guardrails:** keep a per-session image cap (~25) and print a cost estimate per
+  call; the platform key is prepaid with auto-recharge off, so the credit balance
+  is the hard ceiling. Expect ~1.3 generations per accepted image (text sneaking
+  into the image is the usual reason for a redo).
+- **Intake:** `lettercards photo <raw.png> images/<word>.png --pictogram` — resizes
+  to 400×400 and border-flood-fills the background to exact `#FFF8F0`. Then apply
+  the acceptance criteria above and add a provenance row below.
+
 ## License Types
 
 - **ChatGPT/DALL-E**: Per OpenAI's terms, users own the images they create and can use them commercially.

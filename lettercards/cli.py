@@ -55,8 +55,8 @@ def _check(args) -> int:
 
 
 def _photo(args) -> int:
-    out = process_photo(Path(args.source), Path(args.output), args.size)
-    print(f"✓ {out} — square {args.size}px card image")
+    out = process_photo(Path(args.source), Path(args.output), args.size, args.pictogram)
+    print(f"✓ {out} — square card image")
     print("  next: add/update the row in deck.csv and set its status to active")
     return 0
 
@@ -82,7 +82,9 @@ def main(argv=None) -> int:
     p_photo = sub.add_parser("photo", help="prepare a photo as a square card image")
     p_photo.add_argument("source", help="source photo (jpg/png; convert heic first)")
     p_photo.add_argument("output", help="output PNG path, e.g. images/oma.png")
-    p_photo.add_argument("--size", type=int, default=800, help="output size in px")
+    p_photo.add_argument("--size", type=int, help="output size in px (default 800, pictogram 400)")
+    p_photo.add_argument("--pictogram", action="store_true",
+                         help="intake a generated pictogram: 400px, background flattened to card cream")
     p_photo.set_defaults(func=_photo)
 
     args = parser.parse_args(argv)
