@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'  # weekly: catch reportlab/Pillow rot while the repo sits idle
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12', '3.14']  # floor from requires-python, plus current stable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: pip install -e ".[dev]"
+      - run: python -m pytest -q
+
+  budget:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enforce the 1,000-line Python budget
+        run: |
+          total=$(wc -l lettercards/*.py tests/*.py | tail -1 | awk '{print $1}')
+          echo "Python lines: $total / 1000"
+          test "$total" -le 1000
