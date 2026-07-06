@@ -6,7 +6,7 @@ b,bal,bal.png,nl,active,
 b,banaan,banaan.png,nl,active,
 b,beer,beer.png,nl,active,
 b,boom,boom.png,nl,active,
-c,citroen,,nl,idea,soft c /s/ — only loanword c-words in Dutch
+c,citroen,citroen.png,nl,active,soft c /s/ — only loanword c-words in Dutch
 c,clown,,nl,idea,hard c /k/
 d,deur,deur.png,nl,active,
 d,draak,draak.png,nl,active,
@@ -16,7 +16,7 @@ e,egel,,nl,idea,
 f,fiets,fiets.png,nl,active,
 f,fles,,nl,idea,
 f,flamingo,,nl,idea,
-g,geit,,nl,idea,
+g,geit,geit.png,nl,active,
 g,glas,,nl,idea,
 h,hand,hand.png,nl,active,
 h,huis,huis.png,nl,active,
@@ -39,12 +39,12 @@ p,peer,peer.png,nl,active,
 p,paard,,nl,idea,
 # q — consciously skipped: only loanword 'qu-' words in Dutch; none toddler-picturable
 r,rups,,nl,idea,
-r,raket,,nl,idea,
+r,raket,raket.png,nl,active,
 s,schoen,schoen.png,nl,active,
 s,sok,sok.png,nl,active,
 t,tafel,tafel.png,nl,active,
 t,tand,tand.png,nl,active,
-u,uil,,nl,idea,ui-digraph /œy/, not plain short u
+u,uil,uil.png,nl,active,ui-digraph /œy/, not plain short u
 u,ufo,,nl,idea,long u /y/
 v,vis,vis.png,nl,active,
 v,vlinder,vlinder.png,nl,active,
