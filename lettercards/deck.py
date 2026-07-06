@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
 
+from PIL import Image
+
 STATUSES = ("idea", "active", "retired")
 
 
@@ -107,11 +109,23 @@ def check_deck(deck_dir: Path) -> tuple[list[Card], list[str]]:
             problems.append(f"{where}: letter must be a single letter, got '{card.letter}'")
         if card.status not in STATUSES:
             problems.append(f"{where}: unknown status '{card.status}'")
+        if len(card.letter) == 1 and card.word and card.word[0].lower() != card.letter \
+                and not card.notes:
+            problems.append(f"{where}: word starts with '{card.word[0].lower()}', "
+                            f"not letter '{card.letter}' (add a note to allow an exception)")
         if card.status == "active":
             if not card.image:
                 problems.append(f"{where}: active card has no image (should it be an idea?)")
-            elif resolve_image(card, deck_dir) is None:
-                problems.append(f"{where}: image '{card.image}' not found in deck or starter images")
+            else:
+                image_path = resolve_image(card, deck_dir)
+                if image_path is None:
+                    problems.append(f"{where}: image '{card.image}' not found in deck or starter images")
+                else:
+                    with Image.open(image_path) as img:
+                        w, h = img.size
+                    if w != h or min(w, h) < 400:
+                        problems.append(f"{where}: image '{card.image}' is {w}x{h}px, "
+                                        f"must be square and at least 400x400")
         key = (card.word.lower(), card.language)
         if card.word and key in seen:
             problems.append(f"{where}: duplicate of line {seen[key]}")

@@ -60,6 +60,30 @@ def test_check_reports_problems(deck):
     assert "bogus" in text
 
 
+def test_check_flags_letter_word_mismatch(deck):
+    (deck / "deck.csv").write_text(
+        "letter,word,image,language,status,notes\n"
+        "b,kat,zebra.png,nl,active,\n"                      # wrong: kat under b
+        "d,dolfijn,,nl,idea,\n"                             # wrong but noted -> allowed
+        "d,dolfijn2,,nl,idea,ij digraph exception\n",
+        encoding="utf-8")
+    _, problems = check_deck(deck)
+    text = "\n".join(problems)
+    assert "not letter 'b'" in text
+    assert "dolfijn" not in text  # noted exceptions are suppressed
+
+
+def test_check_flags_bad_image_dimensions(deck):
+    from PIL import Image
+    Image.new("RGB", (400, 300), "#3366AA").save(deck / "images" / "wide.png")
+    (deck / "deck.csv").write_text(
+        "letter,word,image,language,status,notes\n"
+        "w,wide,wide.png,nl,active,\n",
+        encoding="utf-8")
+    _, problems = check_deck(deck)
+    assert any("400x300" in p and "square" in p for p in problems)
+
+
 def test_starter_deck_is_valid():
     cards, problems = check_deck(starter_dir())
     assert problems == []
