@@ -10,13 +10,15 @@ from .deck import Card, resolve_image
 
 
 def render_pdf(cards: list[Card], deck_dir: Path, output: Path,
-               rounded: bool = True, cut_lines: bool = False) -> dict:
+               rounded: bool = True, cut_lines: bool = False,
+               howto: bool = False) -> dict:
     """Render picture + letter cards to an A4 PDF. Returns stats.
 
     Each word gets a picture card; each distinct letter additionally
     gets one letter-family card. ``rounded=False`` draws square-cornered
     cards and ``cut_lines=True`` adds dashed cutting guides — both for
-    straight-cutting a sheet with a guillotine.
+    straight-cutting a sheet with a guillotine. ``howto=True`` appends a
+    final parent how-to page so the guidance travels with the printout.
     """
     c = canvas.Canvas(str(output), pagesize=A4)
     c.setTitle("Letterkaarten")
@@ -47,10 +49,16 @@ def render_pdf(cards: list[Card], deck_dir: Path, output: Path,
         else:
             layout.draw_letter_card(c, x, y, card.letter, radius)
 
+    pages = (len(items) + per_page - 1) // per_page
+    if howto:
+        c.showPage()
+        layout.draw_howto_page(c)
+        pages += 1
+
     c.save()
     return {
         "cards": len(items),
         "picture_cards": len(items) - len(seen_letters),
         "letter_cards": len(seen_letters),
-        "pages": (len(items) + per_page - 1) // per_page,
+        "pages": pages,
     }

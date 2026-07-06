@@ -183,6 +183,27 @@ def test_render_rect_and_cut_lines(tmp_path):
     assert n_cut > n_plain  # dashed guides are extra strokes on the page
 
 
+def test_howto_page_and_readme_share_one_source(tmp_path):
+    """The how-to guidance is one Python source; README mirrors it and a full
+    render appends it as a page, while filtered renders skip it."""
+    import re
+    from pathlib import Path
+    from lettercards import howto
+    readme = re.sub(r"\s+", " ", (Path(__file__).parent.parent / "README.md")
+                    .read_text(encoding="utf-8"))
+    for text in [howto.INTRO, howto.OUTRO] + [body for _, _, body in howto.STAGES]:
+        assert re.sub(r"\s+", " ", text) in readme  # README can't drift from howto.py
+    for name, ages, _ in howto.STAGES:
+        assert name in readme and ages in readme
+
+    fitz = pytest.importorskip("fitz")
+    full, filtered = tmp_path / "full.pdf", tmp_path / "one.pdf"
+    assert main(["render", "starter", "-o", str(full)]) == 0
+    assert main(["render", "starter", "--cards", "zebra", "-o", str(filtered)]) == 0
+    assert howto.TITLE in fitz.open(full)[-1].get_text()          # last page is the guide
+    assert howto.TITLE not in fitz.open(filtered)[-1].get_text()  # reprint skips it
+
+
 def test_cli_photo_crops_square(tmp_path):
     from PIL import Image
     src = tmp_path / "portrait.jpg"
