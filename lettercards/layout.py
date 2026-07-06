@@ -131,57 +131,29 @@ def _wrap(text, font, size, max_w):
 
 
 def draw_howto_page(c):
-    """The parent guide, drawn from lettercards.howto (shared source). Flows
-    onto a second page when the content needs it; returns the page count."""
+    """A single-page parent guide, drawn from lettercards.howto (shared source).
+    Deliberately minimal — the staged pedagogy is frozen for v3 (see #26)."""
     from . import howto
     register_fonts()
     mx = 20 * mm
     max_w = PAGE_W - 2 * mx
-    top, bottom = PAGE_H - 26 * mm, 22 * mm
-    y = top
-    pages = 1
+    y = PAGE_H - 26 * mm
 
-    def space_for(h):
-        nonlocal y, pages
-        if y - h < bottom:
-            c.showPage()
-            y = top
-            pages += 1
-
-    def heading(text, size):
+    def paragraph(text):
         nonlocal y
-        space_for(size * 1.2)
-        c.setFont(PRIMARY, size)
-        c.setFillColor(HIGHLIGHT)
-        c.drawString(mx, y, text)
-        y -= size * 1.45 + 3 * mm
-
-    def paragraph(text, font, size, color, indent=0):
-        nonlocal y
-        for line in _wrap(text, font, size, max_w - indent):
-            space_for(size)
-            c.setFont(font, size)
-            c.setFillColor(color)
-            c.drawString(mx + indent, y, line)
-            y -= size * 1.45
+        c.setFont(PILL_FONT, 12)
+        c.setFillColor(WORD_COLOR)
+        for line in _wrap(text, PILL_FONT, 12, max_w):
+            c.drawString(mx, y, line)
+            y -= 12 * 1.45
 
     c.setFillColor(WORD_COLOR)
     c.setFont(PRIMARY, 26)
     c.drawString(mx, y, howto.TITLE)
     y -= 13 * mm
-    paragraph(howto.INTRO, PILL_FONT, 12, WORD_COLOR)
-    y -= 5 * mm
-    for name, ages, body in howto.STAGES:
-        heading(f"{name}   {ages}", 14)
-        paragraph(body, PILL_FONT, 12, WORD_COLOR, indent=6 * mm)
-        y -= 6 * mm
-    heading(howto.NOTES_TITLE, 16)
-    for name, body in howto.NOTES:
-        heading(name, 13)
-        paragraph(body, PILL_FONT, 12, WORD_COLOR, indent=6 * mm)
-        y -= 6 * mm
-    paragraph(howto.OUTRO, PILL_FONT, 12, WORD_COLOR)
-    return pages
+    paragraph(howto.INTRO)
+    y -= 6 * mm
+    paragraph(howto.OUTRO)
 
 
 def _card_base(c, x, y, fill, radius=CORNER_R):

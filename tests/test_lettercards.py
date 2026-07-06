@@ -191,31 +191,15 @@ def test_howto_page_and_readme_share_one_source(tmp_path):
     from lettercards import howto
     readme = re.sub(r"\s+", " ", (Path(__file__).parent.parent / "README.md")
                     .read_text(encoding="utf-8"))
-    bodies = ([howto.INTRO, howto.OUTRO, howto.NOTES_TITLE]
-              + [b for _, _, b in howto.STAGES] + [b for _, b in howto.NOTES])
-    for text in bodies:
+    for text in (howto.INTRO, howto.OUTRO):
         assert re.sub(r"\s+", " ", text) in readme  # README can't drift from howto.py
-    for name, ages, _ in howto.STAGES:
-        assert name in readme and ages in readme
-    for name, _ in howto.NOTES:
-        assert name in readme
 
     fitz = pytest.importorskip("fitz")
     full, filtered = tmp_path / "full.pdf", tmp_path / "one.pdf"
     assert main(["render", "starter", "-o", str(full)]) == 0
     assert main(["render", "starter", "--cards", "zebra", "-o", str(filtered)]) == 0
-    full_doc = fitz.open(full)
-    full_text = "".join(p.get_text() for p in full_doc)     # guide may span 2 pages
-    assert howto.TITLE in full_text and howto.NOTES_TITLE in full_text
+    assert howto.TITLE in fitz.open(full)[-1].get_text()          # last page is the guide
     assert howto.TITLE not in fitz.open(filtered)[-1].get_text()  # reprint skips it
-
-    # the reported page count includes however many pages the guide flows onto
-    from lettercards.deck import printable_cards, resolve_deck_dir
-    from lettercards.render import render_pdf
-    deck_dir = resolve_deck_dir("starter")
-    stats = render_pdf(printable_cards(load_deck(deck_dir), deck_dir),
-                       deck_dir, tmp_path / "stats.pdf", howto=True)
-    assert stats["pages"] == fitz.open(tmp_path / "stats.pdf").page_count
 
 
 def test_cli_photo_crops_square(tmp_path):
