@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["pytest", "pymupdf"]
 
 [project.scripts]
 lettercards = "lettercards.cli:main"
