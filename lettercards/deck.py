@@ -20,7 +20,7 @@ class Card:
     letter: str
     word: str
     image: str
-    language: str
+    tag: str
     status: str
     notes: str
     line: int  # 1-based line number in deck.csv, for check messages
@@ -41,7 +41,10 @@ def load_deck(deck_dir: Path) -> list[Card]:
     """Load all cards from deck.csv, regardless of status.
 
     Lines whose letter field starts with '#' are comments. Missing
-    status defaults to 'active', missing language to 'nl'.
+    status defaults to 'active'. The card's ``tag`` is a short label
+    (a language like ``nl``/``es``, or any deck marker); it defaults to
+    empty, which renders pill-free. ``language`` is a legacy alias for
+    the ``tag`` column.
     """
     path = Path(deck_dir) / "deck.csv"
     cards = []
@@ -55,7 +58,7 @@ def load_deck(deck_dir: Path) -> list[Card]:
                 letter=letter.lower(),
                 word=(row.get("word") or "").strip(),
                 image=(row.get("image") or "").strip(),
-                language=(row.get("language") or "").strip() or "nl",
+                tag=(row.get("tag") or row.get("language") or "").strip(),
                 status=(row.get("status") or "").strip() or "active",
                 notes=(row.get("notes") or "").strip(),
                 line=lineno,
@@ -126,7 +129,7 @@ def check_deck(deck_dir: Path) -> tuple[list[Card], list[str]]:
                     if w != h or min(w, h) < 400:
                         problems.append(f"{where}: image '{card.image}' is {w}x{h}px, "
                                         f"must be square and at least 400x400")
-        key = (card.word.lower(), card.language)
+        key = (card.word.lower(), card.tag)
         if card.word and key in seen:
             problems.append(f"{where}: duplicate of line {seen[key]}")
         seen.setdefault(key, card.line)

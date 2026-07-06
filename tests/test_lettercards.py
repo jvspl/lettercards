@@ -15,7 +15,7 @@ def deck(tmp_path):
     (tmp_path / "images").mkdir()
     shutil.copy(starter_dir() / "images" / "zon.png", tmp_path / "images" / "eigen.png")
     (tmp_path / "deck.csv").write_text(
-        "letter,word,image,language,status,notes\n"
+        "letter,word,image,tag,status,notes\n"
         "# a comment line\n"
         "e,eigen,eigen.png,nl,active,\n"
         "z,zebra,zebra.png,nl,active,\n"
@@ -28,7 +28,53 @@ def deck(tmp_path):
 def test_load_deck_skips_comments(deck):
     cards = load_deck(deck)
     assert [c.word for c in cards] == ["eigen", "zebra", "kasteel", "wolf"]
-    assert cards[0].language == "nl"
+    assert cards[0].tag == "nl"
+
+
+def test_tag_blank_by_default_and_language_alias(tmp_path):
+    """A blank tag stays blank (renders pill-free); the legacy `language`
+    column is still read as the tag."""
+    (tmp_path / "deck.csv").write_text(
+        "letter,word,image,tag,status,notes\n"
+        "a,appel,appel.png,,active,\n"          # blank tag -> no pill
+        "z,zon,zon.png,huis,active,\n",         # arbitrary tag, not a language
+        encoding="utf-8")
+    cards = {c.word: c for c in load_deck(tmp_path)}
+    assert cards["appel"].tag == ""
+    assert cards["zon"].tag == "huis"
+
+    (tmp_path / "legacy.csv").write_text(
+        "letter,word,image,language,status,notes\nz,zon,zon.png,es,active,\n",
+        encoding="utf-8")
+    (tmp_path / "deck.csv").write_text(
+        (tmp_path / "legacy.csv").read_text(encoding="utf-8"), encoding="utf-8")
+    assert load_deck(tmp_path)[0].tag == "es"
+
+
+def test_starter_deck_renders_pill_free():
+    """The starter deck carries no tags, so every card renders pill-free."""
+    assert all(c.tag == "" for c in load_deck(starter_dir()))
+
+
+def test_tag_color_known_fixed_unknown_hashed_and_legible():
+    """Known languages keep their fixed color; any other tag hashes to a
+    stable palette color; every palette color clears WCAG 3:1 on cream."""
+    from lettercards.layout import TAG_COLORS, TAG_PALETTE, BG_CARD, tag_color
+
+    assert tag_color("nl") is TAG_COLORS["nl"]
+    assert tag_color("huis") is tag_color("huis")          # deterministic
+    assert tag_color("huis") in TAG_PALETTE
+    assert {tag_color(t) for t in ("a", "b", "c", "d", "e", "f")} != {tag_color("a")}
+
+    def rel_lum(col):
+        ch = [v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4
+              for v in (col.red, col.green, col.blue)]
+        return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2]
+
+    cream = rel_lum(BG_CARD)
+    for color in TAG_PALETTE + tuple(TAG_COLORS.values()):
+        lo, hi = sorted((cream, rel_lum(color)))
+        assert (hi + 0.05) / (lo + 0.05) >= 3.0
 
 
 def test_image_resolution_prefers_deck_then_starter(deck):

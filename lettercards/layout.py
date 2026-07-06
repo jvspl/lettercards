@@ -2,15 +2,16 @@
 
 Picture cards are the stable anchor: always the same font (Andika, made
 for beginning readers), always lowercase, accent color band behind the
-word, a language pill on every card (no language is the default). Letter
-cards are "letter family" cards: the big canonical lowercase form plus a
-specimen row showing the letter's other real-life shapes (uppercase,
-double-story print sans, serif). Deliberate variation lives there, and
-only there.
+word, and an optional tag pill (a short colored label — a language like
+``nl``, or any deck marker; blank renders pill-free). Letter cards are
+"letter family" cards: the big canonical lowercase form plus a specimen
+row showing the letter's other real-life shapes (uppercase, double-story
+print sans, serif). Deliberate variation lives there, and only there.
 
 Fonts are bundled so every machine renders identical cards.
 """
 
+import hashlib
 from pathlib import Path
 
 from reportlab.lib.colors import Color, HexColor
@@ -56,11 +57,26 @@ LETTER_COLORS = {
 }
 VOWELS = set("aeiou")
 
-LANGUAGE_COLORS = {
+# Tag pills: known languages keep a fixed color; any other tag is hashed
+# to a stable color from a small palette, so two children's decks get
+# visibly different pills with no config. Palette hues are spread apart and
+# all clear WCAG 3:1 on the cream card (tested) so pill text stays legible.
+TAG_COLORS = {
     "nl": HexColor("#3E6CB0"),
     "es": HexColor("#C77B30"),
 }
-LANGUAGE_DEFAULT = HexColor("#8A8A8A")
+TAG_PALETTE = (
+    HexColor("#C1443C"), HexColor("#2A7F62"), HexColor("#6A4C93"),
+    HexColor("#B07A12"), HexColor("#3D6CB0"), HexColor("#A0416F"),
+)
+
+
+def tag_color(tag):
+    """Stable pill color for a tag: fixed for known languages, else hashed."""
+    if tag in TAG_COLORS:
+        return TAG_COLORS[tag]
+    idx = int(hashlib.md5(tag.encode("utf-8")).hexdigest(), 16) % len(TAG_PALETTE)
+    return TAG_PALETTE[idx]
 
 FONT_DIR = Path(__file__).parent / "fonts"
 PRIMARY = "Andika"
@@ -192,20 +208,34 @@ def _draw_image(c, path, ax, ay, aw, ah):
                 preserveAspectRatio=True, mask='auto')
 
 
-def _language_pill(c, x, y, language):
-    color = LANGUAGE_COLORS.get(language, LANGUAGE_DEFAULT)
-    w, h = 8.5 * mm, 4.5 * mm
-    px, py = x + CARD_W - 3 * mm - w, y + 3 * mm
+PILL_MARGIN = 3 * mm
+
+
+def _pill_width(tag):
+    """Rendered width of a tag pill (0 for a blank tag)."""
+    if not tag:
+        return 0
+    tw = pdfmetrics.stringWidth(tag, PILL_FONT, 8)
+    return max(8.5 * mm, tw + 3 * mm)
+
+
+def _tag_pill(c, x, y, tag):
+    """A short colored label in the card's bottom-right. Blank tag: no pill."""
+    if not tag:
+        return
+    color = tag_color(tag)
+    tw = pdfmetrics.stringWidth(tag, PILL_FONT, 8)
+    w, h = _pill_width(tag), 4.5 * mm
+    px, py = x + CARD_W - PILL_MARGIN - w, y + 3 * mm
     c.setFillColor(_tint(color, 0.18))
     c.roundRect(px, py, w, h, h / 2, fill=1, stroke=0)
     c.setFont(PILL_FONT, 8)
     c.setFillColor(color)
-    tw = pdfmetrics.stringWidth(language, PILL_FONT, 8)
-    c.drawString(px + (w - tw) / 2, py + 1.2 * mm, language)
+    c.drawString(px + (w - tw) / 2, py + 1.2 * mm, tag)
 
 
-def draw_picture_card(c, x, y, word, image_path, letter, language, radius=CORNER_R):
-    """Image on cream, word on an accent-tinted band, language pill."""
+def draw_picture_card(c, x, y, word, image_path, letter, tag="", radius=CORNER_R):
+    """Image on cream, word on an accent-tinted band, optional tag pill."""
     register_fonts()
     accent = LETTER_COLORS.get(letter, HIGHLIGHT)
     _card_base(c, x, y, BG_CARD, radius)
@@ -220,7 +250,7 @@ def draw_picture_card(c, x, y, word, image_path, letter, language, radius=CORNER
 
     display = word.lower()
     size = 34
-    max_w = CARD_W - 23 * mm  # keeps the centered word clear of the language pill
+    max_w = CARD_W - 23 * mm  # keeps the centered word clear of the tag pill
     while size > 12 and pdfmetrics.stringWidth(display, PRIMARY, size) > max_w:
         size -= 1
     first, rest = display[0], display[1:]
@@ -232,11 +262,14 @@ def draw_picture_card(c, x, y, word, image_path, letter, language, radius=CORNER
     c.setFillColor(WORD_COLOR)
     c.drawString(tx + pdfmetrics.stringWidth(first, PRIMARY, size), ty, rest)
 
-    _language_pill(c, x, y, language)
+    _tag_pill(c, x, y, tag)
 
 
-def draw_letter_card(c, x, y, letter, radius=CORNER_R):
-    """Letter family: big canonical lowercase + specimen row of other shapes."""
+def draw_letter_card(c, x, y, letter, tag="", radius=CORNER_R):
+    """Letter family: big canonical lowercase + specimen row of other shapes.
+
+    Carries the same tag pill as picture cards: letter cards are the ones
+    most likely to get mixed up when two decks share a box."""
     register_fonts()
     accent = LETTER_COLORS.get(letter, HIGHLIGHT)
     _card_base(c, x, y, BG_CARD, radius)
@@ -255,9 +288,14 @@ def draw_letter_card(c, x, y, letter, radius=CORNER_R):
               for font, case in SPECIMENS.get(letter, SPECIMEN_DEFAULT)]
     total = sum(pdfmetrics.stringWidth(g, f, spec_size) for f, g in glyphs)
     total += gap * (len(glyphs) - 1)
-    gx = x + (CARD_W - total) / 2
+    # Center the row, but keep it clear of the tag pill it shares the bottom
+    # edge with (reserve the pill's width plus its margins when a tag is set).
+    reserve = _pill_width(tag) + PILL_MARGIN + 2 * mm if tag else 0
+    gx = x + (CARD_W - reserve - total) / 2
     c.setFillColor(_tint(accent, 0.55))
     for font, glyph in glyphs:
         c.setFont(font, spec_size)
         c.drawString(gx, y + 6 * mm, glyph)
         gx += pdfmetrics.stringWidth(glyph, font, spec_size) + gap
+
+    _tag_pill(c, x, y, tag)

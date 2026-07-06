@@ -19,14 +19,14 @@ lettercards photo IMG_1234.jpg images/oma.png   # crop a photo into a square car
 A deck is a directory with a `deck.csv` and (optionally) an `images/` directory:
 
 ```csv
-letter,word,image,language,status,notes
-a,appel,appel.png,nl,active,
-k,kasteel,,nl,idea,needs image
+letter,word,image,tag,status,notes
+a,appel,appel.png,,active,
+k,kasteel,,,idea,needs image
 ```
 
 - `status`: `idea` (word without image yet), `active` (rendered), `retired` (skipped).
 - `image` resolves against the deck's own `images/` first, then the bundled starter images.
-- `language`: BCP-47-ish code (`nl`, `es`); shown as a small colored pill on each picture card. Defaults to `nl`.
+- `tag`: a short colored label shown as a pill on every card (picture and letter). It's a general deck marker — a language (`nl`, `es`), or a tag per child, per household, per grandparent's house — so decks that get mixed in one box stay separable. **Blank renders pill-free**, which is what a single-deck household wants. Languages get fixed colors; any other tag hashes to a stable color from a small palette, so two children's decks get visibly different pills with no config. (The column was called `language`; that name still works as an alias.)
 - Lines starting with `#` are comments.
 
 ## Starter deck

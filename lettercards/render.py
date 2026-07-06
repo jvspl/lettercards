@@ -45,9 +45,9 @@ def render_pdf(cards: list[Card], deck_dir: Path, output: Path,
         if kind == "picture":
             layout.draw_picture_card(c, x, y, card.word,
                                      resolve_image(card, deck_dir),
-                                     card.letter, card.language, radius)
+                                     card.letter, card.tag, radius)
         else:
-            layout.draw_letter_card(c, x, y, card.letter, radius)
+            layout.draw_letter_card(c, x, y, card.letter, card.tag, radius)
 
     pages = (len(items) + per_page - 1) // per_page
     if howto:
