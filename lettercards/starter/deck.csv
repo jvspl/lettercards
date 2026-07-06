@@ -39,9 +39,11 @@ s,schoen,schoen.png,nl,active,
 s,sok,sok.png,nl,active,
 t,tafel,tafel.png,nl,active,
 t,tand,tand.png,nl,active,
+u,uil,,nl,idea,ui-digraph /œy/, not plain short u
 v,vis,vis.png,nl,active,
 v,vlinder,vlinder.png,nl,active,
 w,wafel,,nl,idea,
+w,wortel,,nl,idea,
 x,xylofoon,,nl,idea,loanword x /ks/
 y,yoghurt,,nl,idea,loanword y /j/
 z,zebra,zebra.png,nl,active,
