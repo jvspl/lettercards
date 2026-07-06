@@ -10,7 +10,6 @@ from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
 
-COLUMNS = ("letter", "word", "image", "language", "status", "notes")
 STATUSES = ("idea", "active", "retired")
 
 

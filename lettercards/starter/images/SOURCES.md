@@ -69,6 +69,9 @@ Proven July 2026 (the 16-image batch below, ~$0.40 total):
   prompt above as `prompt`, and `image[]=` zebra.png, beer.png, appel.png. The
   response carries base64 PNG in `data[0].b64_json`. Escalate to `gpt-image-1.5`
   only if mini can't hold the style (~$0.02 vs ~$0.06 per image, July 2026 prices).
+- **Frozen anchors:** the reference images attached to every generation are permanently
+  `zebra.png`, `beer.png`, `appel.png` — never a later image that was itself generated from
+  them, so the style can't drift copy-of-a-copy across future batches.
 - **Guardrails:** keep a per-session image cap (~25) and print a cost estimate per
   call; the platform key is prepaid with auto-recharge off, so the credit balance
   is the hard ceiling. Expect ~1.3 generations per accepted image (text sneaking
@@ -86,28 +89,28 @@ Proven July 2026 (the 16-image batch below, ~$0.40 total):
 
 | Preview | Name | Source | Date | Prompt |
 |:-------:|------|--------|------|--------|
-| ![appel](appel.png) | appel | ChatGPT/DALL-E | 2026-03-19 | |
-| ![auto](auto.png) | auto | ChatGPT/DALL-E | 2026-03-19 | |
+| ![appel](appel.png) | appel | ChatGPT/DALL-E | 2026-03-19 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
+| ![auto](auto.png) | auto | ChatGPT/DALL-E | 2026-03-19 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
 | ![bad](bad.png) | bad | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a bathtub with a few soap bubbles" (refs: zebra, beer, appel) |
 | ![bal](bal.png) | bal | ChatGPT/DALL-E | 2026-03-19 | Create a 3x1 grid of cute, simple, child-friendly illustration style similar to Dutch children's books like Nijntje (Miffy) or Dikkie Dik. Soft rounded shapes, warm colors, gentle outlines, cream/beige background. The style should be appealing to toddlers (age 2). The 3 items to draw (left to right, top to bottom): banaan, beer, bal. Each item should be in its own cell with a cream/beige background. Keep items centered and recognizable for a toddler. |
 | ![banaan](banaan.png) | banaan | ChatGPT/DALL-E | 2026-03-19 | Create a 3x1 grid of cute, simple, child-friendly illustration style similar to Dutch children's books like Nijntje (Miffy) or Dikkie Dik. Soft rounded shapes, warm colors, gentle outlines, cream/beige background. The style should be appealing to toddlers (age 2). The 3 items to draw (left to right, top to bottom): banaan, beer, bal. Each item should be in its own cell with a cream/beige background. Keep items centered and recognizable for a toddler. |
 | ![beer](beer.png) | beer | ChatGPT/DALL-E | 2026-03-19 | Create a 3x1 grid of cute, simple, child-friendly illustration style similar to Dutch children's books like Nijntje (Miffy) or Dikkie Dik. Soft rounded shapes, warm colors, gentle outlines, cream/beige background. The style should be appealing to toddlers (age 2). The 3 items to draw (left to right, top to bottom): banaan, beer, bal. Each item should be in its own cell with a cream/beige background. Keep items centered and recognizable for a toddler. |
 | ![boom](boom.png) | boom | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a leafy green tree" (refs: zebra, beer, appel) |
-| ![deur](deur.png) | deur | ChatGPT/DALL-E | 2026-03-19 | |
-| ![draak](draak.png) | draak | ChatGPT/DALL-E | 2026-03-19 | |
-| ![druif](druif.png) | druif | ChatGPT/DALL-E | 2026-03-19 | |
-| ![eend](eend.png) | eend | ChatGPT/DALL-E | 2026-03-19 | |
-| ![fiets](fiets.png) | fiets | ChatGPT/DALL-E | 2026-03-19 | |
+| ![deur](deur.png) | deur | ChatGPT/DALL-E | 2026-03-19 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
+| ![draak](draak.png) | draak | ChatGPT/DALL-E | 2026-03-19 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
+| ![druif](druif.png) | druif | ChatGPT/DALL-E | 2026-03-19 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
+| ![eend](eend.png) | eend | ChatGPT/DALL-E | 2026-03-19 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
+| ![fiets](fiets.png) | fiets | ChatGPT/DALL-E | 2026-03-19 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
 | ![hand](hand.png) | hand | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "an open child's hand, palm forward" (refs: zebra, beer, appel) |
 | ![huis](huis.png) | huis | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a simple house with a red roof" (refs: zebra, beer, appel) |
 | ![jas](jas.png) | jas | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a child's winter coat" (refs: zebra, beer, appel) |
-| ![kat](kat.png) | kat | ChatGPT/DALL-E | 2026-03-18 | |
-| ![koe](koe.png) | koe | ChatGPT/DALL-E | 2026-03-18 | |
-| ![leeuw](leeuw.png) | leeuw | ChatGPT/DALL-E | 2026-03-18 | |
+| ![kat](kat.png) | kat | ChatGPT/DALL-E | 2026-03-18 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
+| ![koe](koe.png) | koe | ChatGPT/DALL-E | 2026-03-18 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
+| ![leeuw](leeuw.png) | leeuw | ChatGPT/DALL-E | 2026-03-18 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
 | ![melk](melk.png) | melk | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a drinking glass of white milk next to an oat-milk carton with a blank label and glass pictogram (no text)" (refs: zebra, beer, appel) |
 | ![muis](muis.png) | muis | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a little grey mouse" (refs: zebra, beer, appel) |
 | ![neus](neus.png) | neus | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a simple human nose" (refs: zebra, beer, appel) |
-| ![olifant](olifant.png) | olifant | ChatGPT/DALL-E | 2026-03-18 | |
+| ![olifant](olifant.png) | olifant | ChatGPT/DALL-E | 2026-03-18 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
 | ![oog](oog.png) | oog | ChatGPT/DALL-E | 2026-03-22 | Create a cute, simple, child-friendly illustration style similar to Dutch children's books like Nijntje (Miffy) or Dikkie Dik. Soft rounded shapes, warm colors, gentle outlines, pure white (#FFFFFF) background. The style should be appealing to toddlers (age 2). No text, labels, or captions in the image. Draw: oog. Make it centered on a cream/beige background, simple and recognizable for a toddler. |
 | ![peer](peer.png) | peer | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a green-yellow pear with a leaf" (refs: zebra, beer, appel) |
 | ![regen](regen.png) | regen | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a rain cloud with falling raindrops" (refs: zebra, beer, appel) |
@@ -117,6 +120,6 @@ Proven July 2026 (the 16-image batch below, ~$0.40 total):
 | ![tand](tand.png) | tand | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a single white tooth" (refs: zebra, beer, appel) |
 | ![vis](vis.png) | vis | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a chubby orange fish" (refs: zebra, beer, appel) |
 | ![vlinder](vlinder.png) | vlinder | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a colorful butterfly" (refs: zebra, beer, appel) |
-| ![water](water.png) | water | ChatGPT/DALL-E | 2026-03-19 | |
-| ![zebra](zebra.png) | zebra | ChatGPT/DALL-E | 2026-03-18 | |
-| ![zon](zon.png) | zon | ChatGPT/DALL-E | 2026-03-19 | |
+| ![water](water.png) | water | ChatGPT/DALL-E | 2026-03-19 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
+| ![zebra](zebra.png) | zebra | ChatGPT/DALL-E | 2026-03-18 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
+| ![zon](zon.png) | zon | ChatGPT/DALL-E | 2026-03-19 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |

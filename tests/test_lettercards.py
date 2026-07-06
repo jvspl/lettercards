@@ -124,6 +124,13 @@ def test_rendered_page_actually_shows_a_card(tmp_path):
     assert corner[0] - band[0] > 20                      # band tint differs from background
 
 
+def test_cli_render_missing_deck_is_friendly(tmp_path, capsys):
+    """A missing deck exits 1 with one error line, not a raw traceback."""
+    rc = main(["render", str(tmp_path / "nope"), "-o", str(tmp_path / "x.pdf")])
+    assert rc == 1
+    assert "error:" in capsys.readouterr().err
+
+
 def test_cli_photo_crops_square(tmp_path):
     from PIL import Image
     src = tmp_path / "portrait.jpg"
