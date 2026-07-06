@@ -10,9 +10,10 @@ letter-learning progression is frozen for v3 — see issue #26.
 
 TITLE = "Using the cards"
 
-INTRO = ("Print on thick paper (≥ 200 g/m²) or laminate — plain paper doesn't survive "
-         "toddlers. The deck grows with the child; don't use all of it at once — show a "
-         "handful of cards at a time, led by the child's interest.")
+INTRO = ("The deck grows with the child — don't use all of it at once. Show a card, say the "
+         "word, and let the child point and name it; a handful of cards at a time, led by "
+         "the child's interest. Keep it playful, and stop before it becomes a drill.")
 
-OUTRO = ("Say letter sounds, not names — “mmm”, not “em”. The word list "
-         "is curated for this: the first letter is the first sound.")
+OUTRO = ("Say letter sounds, not names — “mmm”, not “em”. The colored first letter is that "
+         "sound — the first sound of the word — and every card for a letter shares its band "
+         "color, so the cards sort into families.")

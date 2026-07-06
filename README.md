@@ -35,11 +35,15 @@ k,kasteel,,nl,idea,needs image
 
 ## Using the cards
 
-Print on thick paper (≥ 200 g/m²) or laminate — plain paper doesn't survive toddlers. The deck grows with the child; don't use all of it at once — show a handful of cards at a time, led by the child's interest.
+Print on thick paper (≥ 200 g/m²) or laminate — plain paper doesn't survive toddlers.
 
-Say letter sounds, not names — “mmm”, not “em”. The word list is curated for this: the first letter is the first sound.
+The rest is what to do once you have the deck in hand, and it prints as the final page so it travels with the cards:
 
-The same guidance prints as the final page of a full `lettercards render`, so it travels with the deck. Filtered reprints (`--letters`/`--cards`) skip it; `--no-howto` omits it from a full render too.
+The deck grows with the child — don't use all of it at once. Show a card, say the word, and let the child point and name it; a handful of cards at a time, led by the child's interest. Keep it playful, and stop before it becomes a drill.
+
+Say letter sounds, not names — “mmm”, not “em”. The colored first letter is that sound — the first sound of the word — and every card for a letter shares its band color, so the cards sort into families.
+
+Filtered reprints (`--letters`/`--cards`) skip the how-to page; `--no-howto` omits it from a full render too.
 
 > The staged letter-learning progression (ages, voices, blending) is deliberately **not** here — it's the v3 pedagogy, tracked in [#26](https://github.com/jvspl/lettercards/issues/26). v2 keeps this page small and practical.
 
