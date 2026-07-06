@@ -88,7 +88,13 @@ def main(argv=None) -> int:
     p_photo.set_defaults(func=_photo)
 
     args = parser.parse_args(argv)
-    return args.func(args)
+    try:
+        return args.func(args)
+    except OSError as e:
+        # Deck/image not found, unreadable file, wrong format (e.g. heic) —
+        # the commands know what they need, so show one line, not a traceback.
+        print(f"error: {e}", file=sys.stderr)
+        return 1
 
 
 if __name__ == "__main__":
