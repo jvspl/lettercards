@@ -108,6 +108,53 @@ def _tint(color, alpha):
     return Color(color.red, color.green, color.blue, alpha=alpha)
 
 
+def _wrap(text, font, size, max_w):
+    """Greedy word-wrap to lines no wider than max_w."""
+    lines, cur = [], ""
+    for word in text.split():
+        trial = f"{cur} {word}".strip()
+        if pdfmetrics.stringWidth(trial, font, size) <= max_w or not cur:
+            cur = trial
+        else:
+            lines.append(cur)
+            cur = word
+    if cur:
+        lines.append(cur)
+    return lines
+
+
+def draw_howto_page(c):
+    """A one-page parent guide, drawn from lettercards.howto (shared source)."""
+    from . import howto
+    register_fonts()
+    mx = 20 * mm
+    max_w = PAGE_W - 2 * mx
+    y = PAGE_H - 26 * mm
+
+    def paragraph(text, font, size, color, indent=0):
+        nonlocal y
+        c.setFont(font, size)
+        c.setFillColor(color)
+        for line in _wrap(text, font, size, max_w - indent):
+            c.drawString(mx + indent, y, line)
+            y -= size * 1.45
+
+    c.setFillColor(WORD_COLOR)
+    c.setFont(PRIMARY, 26)
+    c.drawString(mx, y, howto.TITLE)
+    y -= 13 * mm
+    paragraph(howto.INTRO, PILL_FONT, 12, WORD_COLOR)
+    y -= 5 * mm
+    for name, ages, body in howto.STAGES:
+        c.setFont(PRIMARY, 14)
+        c.setFillColor(HIGHLIGHT)
+        c.drawString(mx, y, f"{name}   {ages}")
+        y -= 8 * mm
+        paragraph(body, PILL_FONT, 12, WORD_COLOR, indent=6 * mm)
+        y -= 6 * mm
+    paragraph(howto.OUTRO, PILL_FONT, 12, WORD_COLOR)
+
+
 def _card_base(c, x, y, fill):
     c.setStrokeColor(BORDER)
     c.setLineWidth(0.5)

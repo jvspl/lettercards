@@ -21,7 +21,10 @@ def _render(args) -> int:
         return 1
 
     output = Path(args.output)
-    stats = render_pdf(selected, deck_dir, output)
+    # The how-to page rides along on a full deck render; skip it for filtered
+    # reprints (--letters/--cards) so a single-letter reprint stays clean.
+    include_howto = not args.no_howto and not (letters or words)
+    stats = render_pdf(selected, deck_dir, output, howto=include_howto)
     print(f"✓ {output} — {stats['cards']} cards "
           f"({stats['picture_cards']} picture + {stats['letter_cards']} letter), "
           f"{stats['pages']} page(s)")
@@ -73,6 +76,8 @@ def main(argv=None) -> int:
     p_render.add_argument("--letters", help="only these letters, comma-separated (a,d,o)")
     p_render.add_argument("--cards", help="only these words, comma-separated (zebra,kat)")
     p_render.add_argument("-o", "--output", default="cards.pdf", help="output PDF path")
+    p_render.add_argument("--no-howto", action="store_true",
+                          help="omit the parent how-to page from a full-deck render")
     p_render.set_defaults(func=_render)
 
     p_check = sub.add_parser("check", help="validate a deck and summarize its state")
