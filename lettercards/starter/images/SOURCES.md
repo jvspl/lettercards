@@ -116,7 +116,7 @@ Proven July 2026 (the 16-image batch below, ~$0.40 total):
 | ![egel](egel.png) | egel | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "a little round hedgehog with soft brown spikes" (refs: zebra, beer, appel) |
 | ![fiets](fiets.png) | fiets | ChatGPT/DALL-E | 2026-03-19 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
 | ![flamingo](flamingo.png) | flamingo | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "a pink flamingo standing on one leg" (refs: zebra, beer, appel) |
-| ![fles](fles.png) | fles | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "a baby's drinking bottle with a teat" (refs: zebra, beer, appel) |
+| ![fles](fles.png) | fles | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "a simple clear glass drink bottle with a cap and a little water inside, tall with a narrow neck" (refs: zebra, beer, appel) |
 | ![geit](geit.png) | geit | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "a little white baby goat with tiny horns" (refs: zebra, beer, appel) |
 | ![glas](glas.png) | glas | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "a clear empty drinking glass with a little water in it" (refs: zebra, beer, appel) |
 | ![hand](hand.png) | hand | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "an open child's hand, palm forward" (refs: zebra, beer, appel) |
@@ -131,6 +131,7 @@ Proven July 2026 (the 16-image batch below, ~$0.40 total):
 | ![leeuw](leeuw.png) | leeuw | ChatGPT/DALL-E | 2026-03-18 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
 | ![lepel](lepel.png) | lepel | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "a single wooden spoon" (refs: zebra, beer, appel) |
 | ![melk](melk.png) | melk | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a drinking glass of white milk next to an oat-milk carton with a blank label and glass pictogram (no text)" (refs: zebra, beer, appel) |
+| ![mes](mes.png) | mes | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "a single wooden child's table knife with a rounded blunt tip" (refs: zebra, beer, appel) |
 | ![muis](muis.png) | muis | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a little grey mouse" (refs: zebra, beer, appel) |
 | ![neus](neus.png) | neus | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a simple human nose" (refs: zebra, beer, appel) |
 | ![nijlpaard](nijlpaard.png) | nijlpaard | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "a chubby grey hippo" (refs: zebra, beer, appel) |
@@ -148,7 +149,7 @@ Proven July 2026 (the 16-image batch below, ~$0.40 total):
 | ![uil](uil.png) | uil | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "a little round brown owl" (refs: zebra, beer, appel) |
 | ![vis](vis.png) | vis | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a chubby orange fish" (refs: zebra, beer, appel) |
 | ![vlinder](vlinder.png) | vlinder | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a colorful butterfly" (refs: zebra, beer, appel) |
-| ![wafel](wafel.png) | wafel | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "a square golden-brown waffle" (refs: zebra, beer, appel) |
+| ![vork](vork.png) | vork | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "a single wooden fork" (refs: zebra, beer, appel) |
 | ![wortel](wortel.png) | wortel | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "an orange carrot with a leafy green top" (refs: zebra, beer, appel) |
 | ![xylofoon](xylofoon.png) | xylofoon | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "a colorful toy xylophone with rainbow-colored bars" (refs: zebra, beer, appel) |
 | ![yoghurt](yoghurt.png) | yoghurt | gpt-image-1-mini | 2026-07-06 | master prompt, subject: "an open glass pot of creamy white yoghurt with a few red berries on top" (refs: zebra, beer, appel) |
