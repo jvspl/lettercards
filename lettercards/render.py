@@ -9,11 +9,14 @@ from . import layout
 from .deck import Card, resolve_image
 
 
-def render_pdf(cards: list[Card], deck_dir: Path, output: Path) -> dict:
+def render_pdf(cards: list[Card], deck_dir: Path, output: Path,
+               rounded: bool = True, cut_lines: bool = False) -> dict:
     """Render picture + letter cards to an A4 PDF. Returns stats.
 
     Each word gets a picture card; each distinct letter additionally
-    gets one letter-family card.
+    gets one letter-family card. ``rounded=False`` draws square-cornered
+    cards and ``cut_lines=True`` adds dashed cutting guides — both for
+    straight-cutting a sheet with a guillotine.
     """
     c = canvas.Canvas(str(output), pagesize=A4)
     c.setTitle("Letterkaarten")
@@ -27,18 +30,22 @@ def render_pdf(cards: list[Card], deck_dir: Path, output: Path) -> dict:
             items.append(("letter", card))
 
     per_page = layout.COLS * layout.ROWS
+    radius = layout.CORNER_R if rounded else 0
     for i, (kind, card) in enumerate(items):
-        if i and i % per_page == 0:
-            c.showPage()
+        if i % per_page == 0:
+            if i:
+                c.showPage()
+            if cut_lines:
+                layout.draw_cut_lines(c)
         col, row = i % per_page % layout.COLS, i % per_page // layout.COLS
         x = layout.MARGIN_X + col * (layout.CARD_W + layout.SPACING_X)
         y = layout.PAGE_H - layout.MARGIN_Y - (row + 1) * layout.CARD_H - row * layout.SPACING_Y
         if kind == "picture":
             layout.draw_picture_card(c, x, y, card.word,
                                      resolve_image(card, deck_dir),
-                                     card.letter, card.language)
+                                     card.letter, card.language, radius)
         else:
-            layout.draw_letter_card(c, x, y, card.letter)
+            layout.draw_letter_card(c, x, y, card.letter, radius)
 
     c.save()
     return {

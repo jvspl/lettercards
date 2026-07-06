@@ -108,11 +108,28 @@ def _tint(color, alpha):
     return Color(color.red, color.green, color.blue, alpha=alpha)
 
 
-def _card_base(c, x, y, fill):
+def _card_base(c, x, y, fill, radius=CORNER_R):
     c.setStrokeColor(BORDER)
     c.setLineWidth(0.5)
     c.setFillColor(fill)
-    c.roundRect(x, y, CARD_W, CARD_H, CORNER_R, fill=1, stroke=1)
+    c.roundRect(x, y, CARD_W, CARD_H, radius, fill=1, stroke=1)
+
+
+def draw_cut_lines(c):
+    """Dashed guides along every card edge, for straight-cutting a full sheet."""
+    c.saveState()
+    c.setStrokeColor(BORDER)
+    c.setLineWidth(0.4)
+    c.setDash(2, 3)
+    xs = sorted({MARGIN_X + col * (CARD_W + SPACING_X) + dx
+                 for col in range(COLS) for dx in (0, CARD_W)})
+    ys = sorted({PAGE_H - MARGIN_Y - (row + 1) * CARD_H - row * SPACING_Y + dy
+                 for row in range(ROWS) for dy in (0, CARD_H)})
+    for x in xs:
+        c.line(x, ys[0], x, ys[-1])
+    for y in ys:
+        c.line(xs[0], y, xs[-1], y)
+    c.restoreState()
 
 
 def _draw_image(c, path, ax, ay, aw, ah):
@@ -140,16 +157,16 @@ def _language_pill(c, x, y, language):
     c.drawString(px + (w - tw) / 2, py + 1.2 * mm, language)
 
 
-def draw_picture_card(c, x, y, word, image_path, letter, language):
+def draw_picture_card(c, x, y, word, image_path, letter, language, radius=CORNER_R):
     """Image on cream, word on an accent-tinted band, language pill."""
     register_fonts()
     accent = LETTER_COLORS.get(letter, HIGHLIGHT)
-    _card_base(c, x, y, BG_CARD)
+    _card_base(c, x, y, BG_CARD, radius)
 
     band_h = CARD_H * 0.24
     c.setFillColor(_tint(accent, BAND_ALPHA))
-    c.roundRect(x, y, CARD_W, band_h, CORNER_R, fill=1, stroke=0)
-    c.rect(x, y + band_h - CORNER_R, CARD_W, CORNER_R, fill=1, stroke=0)
+    c.roundRect(x, y, CARD_W, band_h, radius, fill=1, stroke=0)
+    c.rect(x, y + band_h - radius, CARD_W, radius, fill=1, stroke=0)
 
     _draw_image(c, image_path, x + 4 * mm, y + CARD_H * 0.27,
                 CARD_W - 8 * mm, CARD_H * 0.68)
@@ -171,13 +188,13 @@ def draw_picture_card(c, x, y, word, image_path, letter, language):
     _language_pill(c, x, y, language)
 
 
-def draw_letter_card(c, x, y, letter):
+def draw_letter_card(c, x, y, letter, radius=CORNER_R):
     """Letter family: big canonical lowercase + specimen row of other shapes."""
     register_fonts()
     accent = LETTER_COLORS.get(letter, HIGHLIGHT)
-    _card_base(c, x, y, BG_CARD)
+    _card_base(c, x, y, BG_CARD, radius)
     c.setFillColor(_tint(accent, LETTER_BG_ALPHA))
-    c.roundRect(x, y, CARD_W, CARD_H, CORNER_R, fill=1, stroke=0)
+    c.roundRect(x, y, CARD_W, CARD_H, radius, fill=1, stroke=0)
 
     size = 110
     c.setFont(PRIMARY, size)

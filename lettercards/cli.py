@@ -21,7 +21,8 @@ def _render(args) -> int:
         return 1
 
     output = Path(args.output)
-    stats = render_pdf(selected, deck_dir, output)
+    stats = render_pdf(selected, deck_dir, output,
+                       rounded=not args.rect, cut_lines=args.cut_lines)
     print(f"✓ {output} — {stats['cards']} cards "
           f"({stats['picture_cards']} picture + {stats['letter_cards']} letter), "
           f"{stats['pages']} page(s)")
@@ -73,6 +74,10 @@ def main(argv=None) -> int:
     p_render.add_argument("--letters", help="only these letters, comma-separated (a,d,o)")
     p_render.add_argument("--cards", help="only these words, comma-separated (zebra,kat)")
     p_render.add_argument("-o", "--output", default="cards.pdf", help="output PDF path")
+    p_render.add_argument("--rect", action="store_true",
+                          help="square-cornered cards, for clean straight cuts")
+    p_render.add_argument("--cut-lines", action="store_true",
+                          help="dashed cutting guides along card edges (off by default)")
     p_render.set_defaults(func=_render)
 
     p_check = sub.add_parser("check", help="validate a deck and summarize its state")
