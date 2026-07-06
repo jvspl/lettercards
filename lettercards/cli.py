@@ -21,8 +21,12 @@ def _render(args) -> int:
         return 1
 
     output = Path(args.output)
+    # The how-to page rides along on a full deck render; skip it for filtered
+    # reprints (--letters/--cards) so a single-letter reprint stays clean.
+    include_howto = not args.no_howto and not (letters or words)
     stats = render_pdf(selected, deck_dir, output,
-                       rounded=not args.rect, cut_lines=args.cut_lines)
+                       rounded=not args.rect, cut_lines=args.cut_lines,
+                       howto=include_howto)
     print(f"✓ {output} — {stats['cards']} cards "
           f"({stats['picture_cards']} picture + {stats['letter_cards']} letter), "
           f"{stats['pages']} page(s)")
@@ -78,6 +82,8 @@ def main(argv=None) -> int:
                           help="square-cornered cards, for clean straight cuts")
     p_render.add_argument("--cut-lines", action="store_true",
                           help="dashed cutting guides along card edges (off by default)")
+    p_render.add_argument("--no-howto", action="store_true",
+                          help="omit the parent how-to page from a full-deck render")
     p_render.set_defaults(func=_render)
 
     p_check = sub.add_parser("check", help="validate a deck and summarize its state")

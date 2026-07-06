@@ -115,6 +115,47 @@ def _tint(color, alpha):
         (color.blue, BG_CARD.blue))))
 
 
+def _wrap(text, font, size, max_w):
+    """Greedy word-wrap to lines no wider than max_w."""
+    lines, cur = [], ""
+    for word in text.split():
+        trial = f"{cur} {word}".strip()
+        if pdfmetrics.stringWidth(trial, font, size) <= max_w or not cur:
+            cur = trial
+        else:
+            lines.append(cur)
+            cur = word
+    if cur:
+        lines.append(cur)
+    return lines
+
+
+def draw_howto_page(c):
+    """A single-page parent guide, drawn from lettercards.howto (shared source).
+    Deliberately minimal — the staged pedagogy is frozen for v3 (see #26)."""
+    from . import howto
+    register_fonts()
+    mx = 20 * mm
+    max_w = PAGE_W - 2 * mx
+    y = PAGE_H - 26 * mm
+
+    def paragraph(text):
+        nonlocal y
+        c.setFont(PILL_FONT, 12)
+        c.setFillColor(WORD_COLOR)
+        for line in _wrap(text, PILL_FONT, 12, max_w):
+            c.drawString(mx, y, line)
+            y -= 12 * 1.45
+
+    c.setFillColor(WORD_COLOR)
+    c.setFont(PRIMARY, 26)
+    c.drawString(mx, y, howto.TITLE)
+    y -= 13 * mm
+    paragraph(howto.INTRO)
+    y -= 6 * mm
+    paragraph(howto.OUTRO)
+
+
 def _card_base(c, x, y, fill, radius=CORNER_R):
     c.setStrokeColor(BORDER)
     c.setLineWidth(0.5)
