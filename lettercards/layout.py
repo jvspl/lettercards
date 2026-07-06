@@ -131,18 +131,37 @@ def _wrap(text, font, size, max_w):
 
 
 def draw_howto_page(c):
-    """A one-page parent guide, drawn from lettercards.howto (shared source)."""
+    """The parent guide, drawn from lettercards.howto (shared source). Flows
+    onto a second page when the content needs it; returns the page count."""
     from . import howto
     register_fonts()
     mx = 20 * mm
     max_w = PAGE_W - 2 * mx
-    y = PAGE_H - 26 * mm
+    top, bottom = PAGE_H - 26 * mm, 22 * mm
+    y = top
+    pages = 1
+
+    def space_for(h):
+        nonlocal y, pages
+        if y - h < bottom:
+            c.showPage()
+            y = top
+            pages += 1
+
+    def heading(text, size):
+        nonlocal y
+        space_for(size * 1.2)
+        c.setFont(PRIMARY, size)
+        c.setFillColor(HIGHLIGHT)
+        c.drawString(mx, y, text)
+        y -= size * 1.45 + 3 * mm
 
     def paragraph(text, font, size, color, indent=0):
         nonlocal y
-        c.setFont(font, size)
-        c.setFillColor(color)
         for line in _wrap(text, font, size, max_w - indent):
+            space_for(size)
+            c.setFont(font, size)
+            c.setFillColor(color)
             c.drawString(mx + indent, y, line)
             y -= size * 1.45
 
@@ -153,13 +172,16 @@ def draw_howto_page(c):
     paragraph(howto.INTRO, PILL_FONT, 12, WORD_COLOR)
     y -= 5 * mm
     for name, ages, body in howto.STAGES:
-        c.setFont(PRIMARY, 14)
-        c.setFillColor(HIGHLIGHT)
-        c.drawString(mx, y, f"{name}   {ages}")
-        y -= 8 * mm
+        heading(f"{name}   {ages}", 14)
+        paragraph(body, PILL_FONT, 12, WORD_COLOR, indent=6 * mm)
+        y -= 6 * mm
+    heading(howto.NOTES_TITLE, 16)
+    for name, body in howto.NOTES:
+        heading(name, 13)
         paragraph(body, PILL_FONT, 12, WORD_COLOR, indent=6 * mm)
         y -= 6 * mm
     paragraph(howto.OUTRO, PILL_FONT, 12, WORD_COLOR)
+    return pages
 
 
 def _card_base(c, x, y, fill, radius=CORNER_R):

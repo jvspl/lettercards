@@ -52,8 +52,7 @@ def render_pdf(cards: list[Card], deck_dir: Path, output: Path,
     pages = (len(items) + per_page - 1) // per_page
     if howto:
         c.showPage()
-        layout.draw_howto_page(c)
-        pages += 1
+        pages += layout.draw_howto_page(c)
 
     c.save()
     return {
