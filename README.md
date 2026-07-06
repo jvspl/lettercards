@@ -31,7 +31,7 @@ k,kasteel,,nl,idea,needs image
 
 ## Starter deck
 
-`lettercards/starter/` is a complete, ready-to-print Dutch deck: 32 words with child-friendly pictograms (Nijntje-ish style), bundled with the package so `lettercards render starter` works anywhere after install. Image provenance and licensing are tracked in [lettercards/starter/images/SOURCES.md](lettercards/starter/images/SOURCES.md).
+`lettercards/starter/` is a complete, ready-to-print Dutch deck: 37 words with child-friendly pictograms (Nijntje-ish style), bundled with the package so `lettercards render starter` works anywhere after install. It covers every native-Dutch initial letter; `c`, `q`, `x`, and `y` are consciously skipped as loanword-only letters (native `c` occurs only in the `ch` digraph, and `q`/`x`/`y` appear essentially only in loanwords — no toddler-pointable native word). Image provenance and licensing are tracked in [lettercards/starter/images/SOURCES.md](lettercards/starter/images/SOURCES.md).
 
 ## Using the cards
 
