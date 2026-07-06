@@ -97,6 +97,33 @@ def test_letter_colors_vowel_consonant_split():
         assert LETTER_COLORS[a] != LETTER_COLORS[b], f"{a}/{b} share a color"
 
 
+def test_rendered_page_actually_shows_a_card(tmp_path):
+    """Guard the central rule: a rendered page contains card ink and words,
+    not just a valid %PDF- header. Catches white-on-white and missing draws."""
+    fitz = pytest.importorskip("fitz")  # pymupdf, dev extra
+    from lettercards import layout as L
+    out = tmp_path / "z.pdf"
+    assert main(["render", "starter", "--cards", "zebra", "-o", str(out)]) == 0
+    page = fitz.open(out)[0]
+    assert "zebra" in page.get_text().lower()            # the word made it in
+    scale = 150 / 72
+    pix = page.get_pixmap(dpi=150)
+    x0, y0, cw, ch = (L.MARGIN_X * scale, L.MARGIN_Y * scale,  # top-left card box
+                      L.CARD_W * scale, L.CARD_H * scale)
+
+    def region(fx0, fy0, fx1, fy1):
+        xs = range(int(x0 + fx0 * cw), int(x0 + fx1 * cw), 2)
+        ys = range(int(y0 + fy0 * ch), int(y0 + fy1 * ch), 2)
+        px = [pix.pixel(x, y) for y in ys for x in xs]
+        return [sum(p[i] for p in px) / len(px) for i in range(3)], px
+
+    _, image_px = region(0.25, 0.15, 0.75, 0.6)          # picture area
+    assert min(sum(p) / 3 for p in image_px) < 120       # real ink, not white-on-cream
+    band, _ = region(0.2, 0.8, 0.8, 0.95)                # accent band
+    corner, _ = region(0.02, 0.02, 0.06, 0.08)           # bare card cream
+    assert corner[0] - band[0] > 20                      # band tint differs from background
+
+
 def test_cli_photo_crops_square(tmp_path):
     from PIL import Image
     src = tmp_path / "portrait.jpg"
