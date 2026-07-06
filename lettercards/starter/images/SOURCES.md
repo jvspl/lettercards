@@ -44,6 +44,17 @@ Attach 2–3 of the reference images, then:
 > centered on a plain cream `#FFF8F0` background filling about three quarters of the frame,
 > small soft shadow underneath, no text, no border. Square image.
 
+### Word acceptance (checked before the image)
+
+A word earns a card *before* any art is generated — a perfect pictogram can't rescue a
+bad word, so these are checked first:
+
+1. **Concrete and pointable.** A toddler can point at one and name it: no substances,
+   weather, scenes, or abstractions. (`water` and `regen` were removed for exactly this —
+   a splash and a rain cloud are concepts, not things a two-year-old points at.)
+
+Only once a word passes here do the image acceptance criteria below apply.
+
 ### Acceptance criteria for new cards
 
 A generated image enters the deck only if it passes all five:
@@ -113,13 +124,11 @@ Proven July 2026 (the 16-image batch below, ~$0.40 total):
 | ![olifant](olifant.png) | olifant | ChatGPT/DALL-E | 2026-03-18 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
 | ![oog](oog.png) | oog | ChatGPT/DALL-E | 2026-03-22 | Create a cute, simple, child-friendly illustration style similar to Dutch children's books like Nijntje (Miffy) or Dikkie Dik. Soft rounded shapes, warm colors, gentle outlines, pure white (#FFFFFF) background. The style should be appealing to toddlers (age 2). No text, labels, or captions in the image. Draw: oog. Make it centered on a cream/beige background, simple and recognizable for a toddler. |
 | ![peer](peer.png) | peer | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a green-yellow pear with a leaf" (refs: zebra, beer, appel) |
-| ![regen](regen.png) | regen | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a rain cloud with falling raindrops" (refs: zebra, beer, appel) |
 | ![schoen](schoen.png) | schoen | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a child's shoe" (refs: zebra, beer, appel) |
 | ![sok](sok.png) | sok | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a knitted sock" (refs: zebra, beer, appel) |
 | ![tafel](tafel.png) | tafel | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a long wooden dining table seen straight from the front, much wider than tall" (refs: zebra, beer, appel) |
 | ![tand](tand.png) | tand | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a single white tooth" (refs: zebra, beer, appel) |
 | ![vis](vis.png) | vis | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a chubby orange fish" (refs: zebra, beer, appel) |
 | ![vlinder](vlinder.png) | vlinder | gpt-image-1-mini | 2026-07-05 | master prompt, subject: "a colorful butterfly" (refs: zebra, beer, appel) |
-| ![water](water.png) | water | ChatGPT/DALL-E | 2026-03-19 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
 | ![zebra](zebra.png) | zebra | ChatGPT/DALL-E | 2026-03-18 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
 | ![zon](zon.png) | zon | ChatGPT/DALL-E | 2026-03-19 | _prompt lost — regenerate from the master prompt if this image ever needs fixing_ |
