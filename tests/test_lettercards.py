@@ -202,6 +202,18 @@ def test_howto_page_and_readme_share_one_source(tmp_path):
     assert howto.TITLE not in fitz.open(filtered)[-1].get_text()  # reprint skips it
 
 
+def test_version_is_single_sourced(capsys):
+    """--version, package metadata, and __version__ come from one place, so a
+    downstream git-install can trust the reported version (guards a1/a2 drift)."""
+    from importlib.metadata import version
+    import lettercards
+
+    with pytest.raises(SystemExit):        # argparse --version exits 0 after printing
+        main(["--version"])
+    printed = capsys.readouterr().out.strip()
+    assert printed == lettercards.__version__ == version("lettercards")
+
+
 def test_cli_photo_crops_square(tmp_path):
     from PIL import Image
     src = tmp_path / "portrait.jpg"

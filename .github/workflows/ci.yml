@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']  # release tags, checked against __version__ below
   pull_request:
   schedule:
     - cron: '0 6 * * 1'  # weekly: catch reportlab/Pillow rot while the repo sits idle
@@ -30,3 +31,21 @@ jobs:
           total=$(wc -l lettercards/*.py tests/*.py | tail -1 | awk '{print $1}')
           echo "Python lines: $total / 1000"
           test "$total" -le 1000
+
+  version-tag-match:
+    # A release tag must point at a commit whose __version__ matches it —
+    # git won't enforce that coupling, so fail the tag push if it drifts.
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -e .
+      - name: Tag must match __version__
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          got="$(python -c 'import lettercards; print(lettercards.__version__)')"
+          echo "tag: $tag / __version__: $got"
+          test "$tag" = "$got"

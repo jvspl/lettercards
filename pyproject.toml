@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "lettercards"
-version = "2.0.0a2"
+dynamic = ["version"]
 description = "Printable A4 letter-learning cards for toddlers"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -25,6 +25,9 @@ Repository = "https://github.com/jvspl/lettercards"
 
 [tool.setuptools]
 packages = ["lettercards"]
+
+[tool.setuptools.dynamic]
+version = { attr = "lettercards.__version__" }
 
 [tool.setuptools.package-data]
 lettercards = ["starter/deck.csv", "starter/images/*.png", "starter/images/SOURCES.md",
