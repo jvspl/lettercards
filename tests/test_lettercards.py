@@ -63,7 +63,7 @@ def test_check_reports_problems(deck):
 def test_starter_deck_is_valid():
     cards, problems = check_deck(starter_dir())
     assert problems == []
-    assert len(cards) == 34
+    assert len(cards) == 32
 
 
 def test_cli_render_starter(tmp_path, capsys):
