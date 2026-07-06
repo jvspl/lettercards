@@ -131,6 +131,18 @@ def test_cli_render_missing_deck_is_friendly(tmp_path, capsys):
     assert "error:" in capsys.readouterr().err
 
 
+def test_render_rect_and_cut_lines(tmp_path):
+    """--rect and --cut-lines both render; cut guides add vector paths."""
+    fitz = pytest.importorskip("fitz")
+    plain, cut = tmp_path / "plain.pdf", tmp_path / "cut.pdf"
+    assert main(["render", "starter", "--cards", "zebra", "-o", str(plain)]) == 0
+    assert main(["render", "starter", "--cards", "zebra",
+                 "--rect", "--cut-lines", "-o", str(cut)]) == 0
+    n_plain = len(fitz.open(plain)[0].get_drawings())
+    n_cut = len(fitz.open(cut)[0].get_drawings())
+    assert n_cut > n_plain  # dashed guides are extra strokes on the page
+
+
 def test_cli_photo_crops_square(tmp_path):
     from PIL import Image
     src = tmp_path / "portrait.jpg"
