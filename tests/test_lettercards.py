@@ -87,7 +87,7 @@ def test_check_flags_bad_image_dimensions(deck):
 def test_starter_deck_is_valid():
     cards, problems = check_deck(starter_dir())
     assert problems == []
-    assert len(cards) == 32
+    assert len(cards) == 55
 
 
 def test_cli_render_starter(tmp_path, capsys):
