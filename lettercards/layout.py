@@ -39,15 +39,16 @@ BAND_ALPHA = 0.14
 LETTER_BG_ALPHA = 0.12
 
 # Vowels get warm hues (each unique), consonants cool ones — a soft
-# Montessori-style vowel/consonant cue. Two invariants (tested): alphabet
-# neighbors never share a color, and every color is dark enough to work
-# both as word text on cream and as a ~14% background tint.
+# Montessori-style vowel/consonant cue. Three invariants (tested): alphabet
+# neighbors never share a color; warm iff vowel; and every color clears
+# WCAG 3:1 contrast on the cream card, so the highlighted first letter — the
+# phonics cue — stays legible as word text.
 LETTER_COLORS = {
     'a': HexColor("#E63946"), 'b': HexColor("#457B9D"), 'c': HexColor("#6A4C93"),
-    'd': HexColor("#2A9D8F"), 'e': HexColor("#F4A261"), 'f': HexColor("#6A4C93"),
-    'g': HexColor("#1D3557"), 'h': HexColor("#2A9D8F"), 'i': HexColor("#E76F51"),
+    'd': HexColor("#2A9D8F"), 'e': HexColor("#D8680F"), 'f': HexColor("#6A4C93"),
+    'g': HexColor("#1D3557"), 'h': HexColor("#2A9D8F"), 'i': HexColor("#E45C3B"),
     'j': HexColor("#3D8EB9"), 'k': HexColor("#6A4C93"), 'l': HexColor("#2A9D8F"),
-    'm': HexColor("#264653"), 'n': HexColor("#457B9D"), 'o': HexColor("#E9C46A"),
+    'm': HexColor("#264653"), 'n': HexColor("#457B9D"), 'o': HexColor("#AB8119"),
     'p': HexColor("#6A4C93"), 'q': HexColor("#3D8EB9"), 'r': HexColor("#1D3557"),
     's': HexColor("#2A9D8F"), 't': HexColor("#457B9D"), 'u': HexColor("#9C6644"),
     'v': HexColor("#457B9D"), 'w': HexColor("#1D3557"), 'x': HexColor("#6A4C93"),
@@ -105,7 +106,13 @@ def register_fonts():
 
 
 def _tint(color, alpha):
-    return Color(color.red, color.green, color.blue, alpha=alpha)
+    """An alpha tint of ``color`` precomputed over the cream card as an opaque
+    color. Print-shop RIPs flatten live PDF transparency unpredictably, so we
+    never emit it: composite here instead. Backdrop is the card cream, which is
+    exactly what sits behind the band and letter background."""
+    return Color(*(bg + (ch - bg) * alpha for ch, bg in (
+        (color.red, BG_CARD.red), (color.green, BG_CARD.green),
+        (color.blue, BG_CARD.blue))))
 
 
 def _card_base(c, x, y, fill):
@@ -116,7 +123,6 @@ def _card_base(c, x, y, fill):
 
 
 def _draw_image(c, path, ax, ay, aw, ah):
-    c.setFillAlpha(1)  # clear any alpha left in the graphics state
     with Image.open(path) as img:
         iw, ih = img.size
     aspect = iw / ih

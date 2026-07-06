@@ -10,7 +10,8 @@ from pathlib import Path
 from PIL import Image, ImageOps
 
 PHOTO_SIZE = 800      # card image area is ~5.2cm; 800px leaves 300dpi headroom
-PICTOGRAM_SIZE = 400  # matches the starter set
+PICTOGRAM_SIZE = 800  # ~300dpi in the image area; existing 400px starter images
+                      # are upgraded opportunistically when regenerated
 CARD_CREAM = (255, 248, 240)
 
 

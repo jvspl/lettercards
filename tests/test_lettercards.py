@@ -97,6 +97,22 @@ def test_letter_colors_vowel_consonant_split():
         assert LETTER_COLORS[a] != LETTER_COLORS[b], f"{a}/{b} share a color"
 
 
+def test_letter_colors_meet_contrast_on_cream():
+    """Every accent clears WCAG 3:1 on the cream card, so the highlighted
+    first letter — the phonics cue — stays legible (guards o/e/i regressions)."""
+    from lettercards.layout import LETTER_COLORS, BG_CARD
+
+    def rel_lum(c):
+        ch = [v / 12.92 if v <= 0.03928 else ((v + 0.055) / 1.055) ** 2.4
+              for v in (c.red, c.green, c.blue)]
+        return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2]
+
+    cream = rel_lum(BG_CARD)
+    for letter, color in LETTER_COLORS.items():
+        lo, hi = sorted((cream, rel_lum(color)))
+        assert (hi + 0.05) / (lo + 0.05) >= 3.0, f"{letter} fails 3:1 on cream"
+
+
 def test_rendered_page_actually_shows_a_card(tmp_path):
     """Guard the central rule: a rendered page contains card ink and words,
     not just a valid %PDF- header. Catches white-on-white and missing draws."""
@@ -150,6 +166,6 @@ def test_cli_photo_pictogram_flattens_background(tmp_path):
     out = tmp_path / "vis.png"
     assert main(["photo", str(src), str(out), "--pictogram"]) == 0
     with Image.open(out) as result:
-        assert result.size == (400, 400)
+        assert result.size == (800, 800)                     # PICTOGRAM_SIZE, ~300dpi
         assert result.getpixel((2, 2)) == (255, 248, 240)   # background now card cream
-        assert result.getpixel((200, 200)) != (255, 248, 240)  # subject untouched
+        assert result.getpixel((400, 400)) != (255, 248, 240)  # subject untouched
